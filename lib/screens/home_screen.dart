@@ -1,9 +1,11 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/product_provider.dart';
 import '../providers/auth_provider.dart';
 import 'auth_screen.dart';
+import 'checkout_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -145,6 +147,7 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
         ),
+        SizedBox(
           height: 50,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
