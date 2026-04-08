@@ -254,14 +254,19 @@ class HomeScreen extends ConsumerWidget {
                 Positioned(
                   top: 12,
                   right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(8),
-                      backdropFilter: const ColorFilter.mode(Colors.black26, BlendMode.blur),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.favorite_border, color: Colors.white, size: 18),
+                      ),
                     ),
-                    child: const Icon(Icons.favorite_border, color: Colors.white, size: 18),
                   ),
                 ),
               ],
