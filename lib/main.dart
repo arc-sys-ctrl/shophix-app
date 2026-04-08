@@ -1,9 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'screens/home_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Stripe with your publishable key
+  Stripe.publishableKey = "pk_test_placeholder_for_sophix_stripe";
+  
   runApp(
     const ProviderScope(
       child: SophixApp(),
@@ -17,7 +20,7 @@ class SophixApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Sophix DRPSTR',
+      title: 'Sophix',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,

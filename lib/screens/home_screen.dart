@@ -48,11 +48,11 @@ class HomeScreen extends ConsumerWidget {
       floating: true,
       centerTitle: true,
       title: Text(
-        'DRPSTR',
+        'Sophix',
         style: GoogleFonts.outfit(
-          fontWeight: FontWeight.w900,
-          letterSpacing: 2,
-          fontSize: 24,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.5,
+          fontSize: 22,
           color: Colors.white,
         ),
       ),
@@ -80,62 +80,48 @@ class HomeScreen extends ConsumerWidget {
 
   Widget _buildHeroSection(BuildContext context) {
     return Container(
-      height: 400,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.grey[900],
-      ),
-      child: Stack(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Placeholder for hero image
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.transparent, Color(0xFF0A0E14)],
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00D1FF).withOpacity(0.1),
+                  border: Border.all(color: const Color(0xFF00D1FF).withOpacity(0.3)),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'NEW SEASON',
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF00D1FF),
+                    letterSpacing: 1,
+                  ),
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Sophisticated\nInnovation.',
+            style: GoogleFonts.outfit(
+              fontSize: 36,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              height: 1.1,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'SS26 COLLECTION',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    letterSpacing: 4,
-                    color: Colors.white70,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'DEFINE\nYOUR EDGE',
-                  style: GoogleFonts.outfit(
-                    fontSize: 48,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    height: 1,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
-                    ),
-                  ),
-                  child: const Text('SHOP NOW'),
-                ),
-              ],
+          const SizedBox(height: 8),
+          Text(
+            'Experience the future of tech-wear and accessories.',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: Colors.white54,
+              height: 1.5,
             ),
           ),
         ],
@@ -159,36 +145,32 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
         ),
-        SizedBox(
-          height: 120,
+          height: 50,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             itemCount: categories.length,
             itemBuilder: (context, index) {
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[800],
-                        borderRadius: BorderRadius.circular(40),
-                      ),
-                      child: const Icon(Icons.category, color: Colors.white),
+                padding: const EdgeInsets.only(right: 12),
+                child: ChoiceChip(
+                  label: Text(categories[index]),
+                  selected: index == 0,
+                  onSelected: (val) {},
+                  backgroundColor: Colors.transparent,
+                  selectedColor: const Color(0xFF00D1FF),
+                  labelStyle: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: index == 0 ? Colors.black : Colors.white70,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: BorderSide(
+                      color: index == 0 ? Colors.transparent : Colors.white10,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      categories[index],
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+                  ),
+                  showCheckmark: false,
                 ),
               );
             },
@@ -234,7 +216,14 @@ class HomeScreen extends ConsumerWidget {
               itemCount: products.length,
               itemBuilder: (context, index) {
                 final product = products[index];
-                return _buildProductCard(context, product);
+                return GestureDetector(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => CheckoutScreen(amount: product.price),
+                    ),
+                  ),
+                  child: _buildProductCard(context, product),
+                );
               },
             ),
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -255,55 +244,57 @@ class HomeScreen extends ConsumerWidget {
           Container(
             height: 220,
             decoration: BoxDecoration(
-              color: Colors.grey[900],
-              borderRadius: BorderRadius.circular(4),
+              color: const Color(0xFF161B22),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withOpacity(0.05)),
             ),
             child: Stack(
               children: [
-                const Center(child: Icon(Icons.image, color: Colors.white24, size: 40)),
+                const Center(child: Icon(Icons.blur_on, color: Colors.white10, size: 60)),
                 Positioned(
-                  top: 8,
-                  right: 8,
+                  top: 12,
+                  right: 12,
                   child: Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
-                      shape: BoxShape.circle,
+                      color: Colors.black.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(8),
+                      backdropFilter: const ColorFilter.mode(Colors.black26, BlendMode.blur),
                     ),
-                    child: const Icon(Icons.favorite_border, color: Colors.white, size: 16),
+                    child: const Icon(Icons.favorite_border, color: Colors.white, size: 18),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Text(
             product.brand.toUpperCase(),
             style: GoogleFonts.inter(
               fontSize: 10,
-              letterSpacing: 1,
-              color: Colors.white54,
-              fontWeight: FontWeight.bold,
+              letterSpacing: 2,
+              color: const Color(0xFF00D1FF),
+              fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             product.name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.inter(
-              fontSize: 14,
+            style: GoogleFonts.outfit(
+              fontSize: 16,
               color: Colors.white,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            'KES ${product.price.toStringAsFixed(2)}',
-            style: GoogleFonts.outfit(
+            '${product.price.toStringAsFixed(2)} KES',
+            style: GoogleFonts.inter(
               fontSize: 14,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
+              color: Colors.white70,
+              fontWeight: FontWeight.w400,
             ),
           ),
         ],

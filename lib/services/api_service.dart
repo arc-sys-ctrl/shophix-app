@@ -30,4 +30,42 @@ class ApiService {
     if (path.startsWith('http')) return path;
     return 'http://localhost:5001$path';
   }
+
+  // --- Payment APIs ---
+
+  Future<Map<String, dynamic>> initiateMpesaStkPush(String phoneNumber, double amount) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/payments/mpesa/stk-push'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'phoneNumber': phoneNumber,
+        'amount': amount,
+        'accountReference': 'SophixOrder',
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('M-Pesa Payment Failed: ${response.body}');
+    }
+  }
+
+  Future<String> createStripePaymentIntent(double amount, String currency) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/payments/stripe/create-intent'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'amount': amount,
+        'currency': currency,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['clientSecret'];
+    } else {
+      throw Exception('Stripe Payment Initiation Failed: ${response.body}');
+    }
+  }
 }
