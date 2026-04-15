@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/product.dart';
 import '../models/cart_item.dart';
 
 class CartState {
@@ -14,13 +13,16 @@ class CartState {
   bool get isEmpty => items.isEmpty;
 }
 
-class CartNotifier extends StateNotifier<CartState> {
-  CartNotifier() : super(const CartState());
+class CartNotifier extends Notifier<CartState> {
+  @override
+  CartState build() {
+    return const CartState();
+  }
 
   void addItem(CartItem item) {
     final existingIndex = state.items.indexWhere((i) => i.id == item.id);
     if (existingIndex >= 0) {
-      final updated = [...state.items];
+      final updated = List<CartItem>.from(state.items);
       updated[existingIndex] =
           updated[existingIndex].copyWith(quantity: updated[existingIndex].quantity + 1);
       state = CartState(items: updated);
@@ -47,6 +49,6 @@ class CartNotifier extends StateNotifier<CartState> {
   void clearCart() => state = const CartState();
 }
 
-final cartProvider = StateNotifierProvider<CartNotifier, CartState>((ref) {
+final cartProvider = NotifierProvider<CartNotifier, CartState>(() {
   return CartNotifier();
 });
