@@ -1,9 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/cart_provider.dart';
+import '../providers/product_provider.dart';
+import '../providers/auth_provider.dart';
 import 'auth_screen.dart';
 import 'product_detail_screen.dart';
 
@@ -43,7 +46,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final trendingAsyncValue = ref.watch(trendingProductsProvider);
     final newArrivalsAsyncValue = ref.watch(newArrivalsProvider);
 
@@ -84,7 +87,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
     );
   }
 
-  Widget _buildSliverAppBar(BuildContext context, WidgetRef ref) {
+  Widget _buildSliverAppBar(BuildContext context) {
     final authState = ref.watch(authProvider);
 
     final cartItemsCount = ref.watch(cartProvider).totalItems;
@@ -232,7 +235,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
                     GestureDetector(
                       onTap: () {
                         HapticFeedback.mediumImpact();
-                        ref.read(currentTabProvider.notifier).state = 1; // Discover Tab
+                        ref.read(currentTabProvider.notifier).setTab(1); // Discover Tab
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -455,7 +458,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
                     const Center(
                       child: Icon(
                         Icons.inventory_2_outlined,
-                        color: Colors.white10,
+                        color: Colors.white24,
                         size: 60,
                       ),
                     ),

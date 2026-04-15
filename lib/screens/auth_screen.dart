@@ -429,7 +429,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                         border: Border.all(
                           color: _rememberMe
                               ? const Color(0xFF00D1FF)
-                              : Colors.white20,
+                              : Colors.white24,
                         ),
                       ),
                       child: _rememberMe
