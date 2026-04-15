@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../providers/navigation_provider.dart';
 import 'home_screen.dart';
 import 'search_screen.dart';
 import 'cart_screen.dart';
 import 'profile_screen.dart';
-
-final currentTabProvider = StateProvider<int>((ref) => 0);
 
 class MainLayout extends ConsumerWidget {
   const MainLayout({super.key});

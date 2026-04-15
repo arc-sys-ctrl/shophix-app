@@ -87,6 +87,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
   Widget _buildSliverAppBar(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
 
+    final cartItemsCount = ref.watch(cartProvider).totalItems;
+
     return SliverAppBar(
       backgroundColor: const Color(0xFF0A0E14),
       floating: true,
@@ -103,7 +105,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
       actions: [
         IconButton(
           icon: const Icon(Icons.search, color: Colors.white70),
-          onPressed: () => _showSearch(context),
+          onPressed: () => _showSearch(context, ref),
         ),
         if (authState.user != null)
           IconButton(
@@ -121,32 +123,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
           children: [
             IconButton(
               icon: const Icon(Icons.shopping_bag_outlined, color: Colors.white),
-              onPressed: () => _showCart(context),
+              onPressed: () => _showCart(context, ref),
             ),
-            Positioned(
-              right: 8,
-              top: 8,
-              child: Container(
-                padding: const EdgeInsets.all(2),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF00D1FF),
-                  shape: BoxShape.circle,
-                ),
-                constraints: const BoxConstraints(
-                  minWidth: 16,
-                  minHeight: 16,
-                ),
-                child: Text(
-                  '3', // TODO: Replace with actual cart count
-                  style: GoogleFonts.inter(
-                    color: Colors.black,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+            if (cartItemsCount > 0)
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF00D1FF),
+                    shape: BoxShape.circle,
                   ),
-                  textAlign: TextAlign.center,
+                  constraints: const BoxConstraints(
+                    minWidth: 16,
+                    minHeight: 16,
+                  ),
+                  child: Text(
+                    cartItemsCount.toString(),
+                    style: GoogleFonts.inter(
+                      color: Colors.black,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ],

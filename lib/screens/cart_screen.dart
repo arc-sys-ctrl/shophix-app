@@ -1,44 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../providers/cart_provider.dart';
+import '../models/cart_item.dart';
 import 'checkout_screen.dart';
 
-class CartScreen extends StatefulWidget {
+class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
 
   @override
-  State<CartScreen> createState() => _CartScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cartState = ref.watch(cartProvider);
 
-class _CartScreenState extends State<CartScreen> {
-  // Mock cart items - in real app, this would come from a provider
-  final List<CartItem> _cartItems = [
-    CartItem(
-      id: '1',
-      name: 'Urban Tech Hoodie',
-      brand: 'Sophix',
-      price: 4500.0,
-      size: 'L',
-      quantity: 1,
-      imageUrl: '',
-    ),
-    CartItem(
-      id: '2',
-      name: 'Premium Sneakers',
-      brand: 'TechWear',
-      price: 8500.0,
-      size: '42',
-      quantity: 2,
-      imageUrl: '',
-    ),
-  ];
-
-  double get _subtotal => _cartItems.fold(0, (sum, item) => sum + (item.price * item.quantity));
-  double get _shipping => _subtotal > 5000 ? 0 : 500;
-  double get _tax => _subtotal * 0.16; // 16% VAT
-  double get _total => _subtotal + _shipping + _tax;
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0A0E14),
       appBar: AppBar(
@@ -57,9 +30,9 @@ class _CartScreenState extends State<CartScreen> {
         ),
         centerTitle: true,
         actions: [
-          if (_cartItems.isNotEmpty)
+          if (cartState.items.isNotEmpty)
             TextButton(
-              onPressed: _clearCart,
+              onPressed: () => _clearCartDialog(context, ref),
               child: Text(
                 'Clear All',
                 style: GoogleFonts.inter(
@@ -70,11 +43,11 @@ class _CartScreenState extends State<CartScreen> {
             ),
         ],
       ),
-      body: _cartItems.isEmpty ? _buildEmptyCart() : _buildCartContent(),
+      body: cartState.isEmpty ? _buildEmptyCart(context) : _buildCartContent(context, ref, cartState),
     );
   }
 
-  Widget _buildEmptyCart() {
+  Widget _buildEmptyCart(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -125,27 +98,27 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildCartContent() {
+  Widget _buildCartContent(BuildContext context, WidgetRef ref, CartState cartState) {
     return Column(
       children: [
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.all(16),
-            itemCount: _cartItems.length,
+            itemCount: cartState.items.length,
             itemBuilder: (context, index) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16),
-                child: _buildCartItem(_cartItems[index]),
+                child: _buildCartItem(context, ref, cartState.items[index]),
               );
             },
           ),
         ),
-        _buildOrderSummary(),
+        _buildOrderSummary(context, cartState),
       ],
     );
   }
 
-  Widget _buildCartItem(CartItem item) {
+  Widget _buildCartItem(BuildContext context, WidgetRef ref, CartItem item) {
     return Dismissible(
       key: Key(item.id),
       direction: DismissDirection.endToStart,
@@ -162,7 +135,16 @@ class _CartScreenState extends State<CartScreen> {
           size: 28,
         ),
       ),
-      onDismissed: (direction) => _removeItem(item.id),
+      onDismissed: (direction) {
+        ref.read(cartProvider.notifier).removeItem(item.id);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${item.name} removed from cart', style: GoogleFonts.inter()),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -178,12 +160,16 @@ class _CartScreenState extends State<CartScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFF1E2832),
                 borderRadius: BorderRadius.circular(12),
+                image: item.imageUrl.isNotEmpty ? DecorationImage(
+                  image: NetworkImage(item.imageUrl),
+                  fit: BoxFit.cover,
+                ) : null,
               ),
-              child: const Icon(
+              child: item.imageUrl.isEmpty ? const Icon(
                 Icons.inventory_2_outlined,
                 color: Colors.white10,
                 size: 32,
-              ),
+              ) : null,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -210,15 +196,17 @@ class _CartScreenState extends State<CartScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Size: ${item.size}',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: Colors.white54,
+                  if (item.selectedSize != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Size: ${item.selectedSize}',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: Colors.white54,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
+                  ],
+                  const SizedBox(height: 8),
                   Text(
                     '${item.price.toStringAsFixed(2)} KES',
                     style: GoogleFonts.inter(
@@ -236,7 +224,7 @@ class _CartScreenState extends State<CartScreen> {
                   children: [
                     _buildQuantityButton(
                       icon: Icons.remove,
-                      onPressed: item.quantity > 1 ? () => _updateQuantity(item.id, item.quantity - 1) : null,
+                      onPressed: () => ref.read(cartProvider.notifier).updateQuantity(item.id, item.quantity - 1),
                     ),
                     Container(
                       width: 40,
@@ -259,7 +247,7 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                     _buildQuantityButton(
                       icon: Icons.add,
-                      onPressed: () => _updateQuantity(item.id, item.quantity + 1),
+                      onPressed: () => ref.read(cartProvider.notifier).updateQuantity(item.id, item.quantity + 1),
                     ),
                   ],
                 ),
@@ -302,7 +290,7 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildOrderSummary() {
+  Widget _buildOrderSummary(BuildContext context, CartState cartState) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -314,21 +302,21 @@ class _CartScreenState extends State<CartScreen> {
       ),
       child: Column(
         children: [
-          _buildSummaryRow('Subtotal', _subtotal),
+          _buildSummaryRow('Subtotal', cartState.subtotal),
           const SizedBox(height: 12),
-          _buildSummaryRow('Shipping', _shipping, isFree: _shipping == 0),
+          _buildSummaryRow('Shipping', cartState.shipping, isFree: cartState.shipping == 0),
           const SizedBox(height: 12),
-          _buildSummaryRow('Tax (16%)', _tax),
+          _buildSummaryRow('Tax (16%)', cartState.subtotal * 0.16),
           const Divider(height: 24, color: Colors.white10),
-          _buildSummaryRow('Total', _total, isTotal: true),
+          _buildSummaryRow('Total', cartState.total + (cartState.subtotal * 0.16), isTotal: true),
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
             height: 56,
             child: ElevatedButton(
-              onPressed: () => Navigator.of(context).push(
+              onPressed: cartState.isEmpty ? null : () => Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => CheckoutScreen(amount: _total),
+                  builder: (_) => CheckoutScreen(amount: cartState.total + (cartState.subtotal * 0.16)),
                 ),
               ),
               style: ElevatedButton.styleFrom(
@@ -378,27 +366,7 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  void _updateQuantity(String itemId, int newQuantity) {
-    setState(() {
-      final item = _cartItems.firstWhere((item) => item.id == itemId);
-      item.quantity = newQuantity;
-    });
-  }
-
-  void _removeItem(String itemId) {
-    setState(() {
-      _cartItems.removeWhere((item) => item.id == itemId);
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Item removed from cart', style: GoogleFonts.inter()),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  void _clearCart() {
+  void _clearCartDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -422,7 +390,7 @@ class _CartScreenState extends State<CartScreen> {
           ),
           TextButton(
             onPressed: () {
-              setState(() => _cartItems.clear());
+              ref.read(cartProvider.notifier).clearCart();
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -441,24 +409,4 @@ class _CartScreenState extends State<CartScreen> {
       ),
     );
   }
-}
-
-class CartItem {
-  final String id;
-  final String name;
-  final String brand;
-  final double price;
-  final String size;
-  int quantity;
-  final String imageUrl;
-
-  CartItem({
-    required this.id,
-    required this.name,
-    required this.brand,
-    required this.price,
-    required this.size,
-    required this.quantity,
-    required this.imageUrl,
-  });
 }
