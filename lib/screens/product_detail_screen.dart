@@ -22,6 +22,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  int _currentImageIndex = 0;
+  final PageController _pageController = PageController();
 
   @override
   void initState() {
@@ -185,23 +187,37 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
       ],
       flexibleSpace: FlexibleSpaceBar(
         stretchModes: const [StretchMode.zoomBackground],
-        background: Hero(
-          tag: 'product_${widget.product.id}',
-          child: Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFF161B22),
-              image: widget.product.imageUrl.isNotEmpty ? DecorationImage(
-                image: NetworkImage(widget.product.imageUrl),
-                fit: BoxFit.cover,
-              ) : null,
-            ),
-            child: widget.product.imageUrl.isEmpty ? Center(
-              child: Icon(
-                Icons.inventory_2_outlined,
-                color: Colors.white.withValues(alpha: 0.05),
-                size: 100,
+        background: Stack(
+          children: [
+            Hero(
+              tag: 'product_${widget.product.id}',
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: 1 + (widget.product.imageUrls.length),
+                onPageChanged: (index) => setState(() => _currentImageIndex = index),
+                itemBuilder: (context, index) {
+                  final images = [widget.product.imageUrl, ...widget.product.imageUrls];
+                  final imageUrl = images[index];
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF161B22),
+                      image: imageUrl.isNotEmpty ? DecorationImage(
+                        image: NetworkImage(imageUrl),
+                        fit: BoxFit.cover,
+                      ) : null,
+                    ),
+                    child: imageUrl.isEmpty ? Center(
+                      child: Icon(
+                        Icons.inventory_2_outlined,
+                        color: Colors.white.withValues(alpha: 0.05),
+                        size: 100,
+                      ),
+                    ) : null,
+                  );
+                },
               ),
-            ) : Container(
+            ),
+            Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
@@ -216,7 +232,29 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
                 ),
               ),
             ),
-          ),
+            if (widget.product.imageUrls.isNotEmpty)
+              Positioned(
+                bottom: 24,
+                left: 0,
+                right: 0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    1 + widget.product.imageUrls.length,
+                    (index) => AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      height: 6,
+                      width: _currentImageIndex == index ? 24 : 6,
+                      decoration: BoxDecoration(
+                        color: _currentImageIndex == index ? const Color(0xFF00D1FF) : Colors.white24,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );

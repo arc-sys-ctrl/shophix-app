@@ -5,6 +5,7 @@ class Product {
   final double price;
   final double? originalPrice;
   final String imageUrl;
+  final List<String> imageUrls;
   final String categoryName;
   final List<String> sizes;
   final String description;
@@ -21,6 +22,7 @@ class Product {
     required this.price,
     this.originalPrice,
     required this.imageUrl,
+    required this.imageUrls,
     required this.categoryName,
     required this.sizes,
     required this.description,
@@ -39,6 +41,7 @@ class Product {
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       originalPrice: (json['original_price'] as num?)?.toDouble(),
       imageUrl: json['image_url'] ?? '',
+      imageUrls: List<String>.from(json['image_urls'] ?? []),
       categoryName: json['category_name'] ?? '',
       sizes: List<String>.from(json['sizes'] ?? []),
       description: json['description'] ?? '',
