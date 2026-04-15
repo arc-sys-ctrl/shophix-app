@@ -38,7 +38,7 @@ class MainLayout extends ConsumerWidget {
         ),
         bottomNavigationBar: _SophixNavBar(
           currentIndex: currentTab,
-          onTap: (index) => ref.read(currentTabProvider.notifier).state = index,
+          onTap: (index) => ref.read(currentTabProvider.notifier).setTab(index),
         ),
       ),
     );
@@ -58,9 +58,9 @@ class _SophixNavBar extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF0D1117).withOpacity(0.8),
+            color: const Color(0xFF0D1117).withValues(alpha: 0.8),
             border: Border(
-              top: BorderSide(color: Colors.white.withOpacity(0.06), width: 1),
+              top: BorderSide(color: Colors.white.withValues(alpha: 0.06), width: 1),
             ),
           ),
           child: SafeArea(
@@ -120,7 +120,7 @@ class _NavItem extends StatelessWidget {
               curve: Curves.easeOut,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               decoration: BoxDecoration(
-                color: isActive ? const Color(0xFF00D1FF).withOpacity(0.12) : Colors.transparent,
+                color: isActive ? const Color(0xFF00D1FF).withValues(alpha: 0.12) : Colors.transparent,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(

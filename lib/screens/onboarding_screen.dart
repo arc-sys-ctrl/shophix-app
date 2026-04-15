@@ -258,7 +258,7 @@ class _OnboardPage extends StatelessWidget {
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
                           colors: [
-                            slide.iconColor.withOpacity(0.2),
+                            slide.iconColor.withValues(alpha: 0.2),
                             Colors.transparent,
                           ],
                         ),
@@ -279,7 +279,7 @@ class _OnboardPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(36),
                         boxShadow: [
                           BoxShadow(
-                            color: slide.iconColor.withOpacity(0.4),
+                            color: slide.iconColor.withValues(alpha: 0.4),
                             blurRadius: 50,
                             spreadRadius: 5,
                           ),
@@ -296,7 +296,7 @@ class _OnboardPage extends StatelessWidget {
                       width: 12,
                       height: 12,
                       decoration: BoxDecoration(
-                        color: slide.iconColor.withOpacity(0.6),
+                        color: slide.iconColor.withValues(alpha: 0.6),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -308,7 +308,7 @@ class _OnboardPage extends StatelessWidget {
                       width: 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: slide.iconColor.withOpacity(0.4),
+                        color: slide.iconColor.withValues(alpha: 0.4),
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -320,7 +320,7 @@ class _OnboardPage extends StatelessWidget {
                       width: 6,
                       height: 6,
                       decoration: BoxDecoration(
-                        color: slide.gradient.last.withOpacity(0.5),
+                        color: slide.gradient.last.withValues(alpha: 0.5),
                         shape: BoxShape.circle,
                       ),
                     ),

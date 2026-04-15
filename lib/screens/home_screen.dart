@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -63,7 +62,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
         backgroundColor: const Color(0xFF161B22),
         child: CustomScrollView(
           slivers: [
-            _buildSliverAppBar(context, ref),
+            _buildSliverAppBar(context),
             SliverToBoxAdapter(child: _buildHeroSection(context)),
             SliverToBoxAdapter(child: _buildCategorySection(context)),
             SliverToBoxAdapter(
@@ -108,12 +107,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
       actions: [
         IconButton(
           icon: const Icon(Icons.search, color: Colors.white70),
-          onPressed: () => _showSearch(context, ref),
+          onPressed: () => _showSearch(context),
         ),
         if (authState.user != null)
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white70),
-            onPressed: () => _showLogoutDialog(context, ref),
+            onPressed: () => _showLogoutDialog(context),
           )
         else
           IconButton(
@@ -126,7 +125,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
           children: [
             IconButton(
               icon: const Icon(Icons.shopping_bag_outlined, color: Colors.white),
-              onPressed: () => _showCart(context, ref),
+              onPressed: () => _showCart(context),
             ),
             if (cartItemsCount > 0)
               Positioned(
@@ -177,7 +176,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF00D1FF).withOpacity(0.2),
+                color: const Color(0xFF00D1FF).withValues(alpha: 0.2),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -194,7 +193,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
                   height: 150,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                   ),
                 ),
               ),
@@ -207,9 +206,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.3)),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         'NEW ARRIVALS 2026',
@@ -322,10 +321,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
         width: 80,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF00D1FF).withOpacity(0.1) : const Color(0xFF161B22),
+          color: isSelected ? const Color(0xFF00D1FF).withValues(alpha: 0.1) : const Color(0xFF161B22),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFF00D1FF) : Colors.white.withOpacity(0.05),
+            color: isSelected ? const Color(0xFF00D1FF) : Colors.white.withValues(alpha: 0.05),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -441,7 +440,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
         decoration: BoxDecoration(
           color: const Color(0xFF161B22),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -468,7 +467,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.6),
+                          color: Colors.black.withValues(alpha: 0.6),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Icon(
@@ -576,15 +575,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
     );
   }
 
-  void _showSearch(BuildContext context, WidgetRef ref) {
-    ref.read(currentTabProvider.notifier).state = 1;
+  void _showSearch(BuildContext context) {
+    ref.read(currentTabProvider.notifier).setTab(1);
   }
 
-  void _showCart(BuildContext context, WidgetRef ref) {
-    ref.read(currentTabProvider.notifier).state = 2;
+  void _showCart(BuildContext context) {
+    ref.read(currentTabProvider.notifier).setTab(2);
   }
 
-  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
+  void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

@@ -34,7 +34,6 @@ class SophixApp extends StatelessWidget {
           primary: Color(0xFF00D1FF),
           secondary: Color(0xFF1E2832),
           surface: Color(0xFF0A0E14),
-          background: Color(0xFF0A0E14),
         ),
         useMaterial3: true,
       ),

@@ -54,7 +54,7 @@ class CartScreen extends ConsumerWidget {
         children: [
           Icon(
             Icons.shopping_cart_outlined,
-            color: Colors.white.withOpacity(0.3),
+            color: Colors.white.withValues(alpha: 0.3),
             size: 80,
           ),
           const SizedBox(height: 24),
@@ -150,7 +150,7 @@ class CartScreen extends ConsumerWidget {
         decoration: BoxDecoration(
           color: const Color(0xFF161B22),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
         ),
         child: Row(
           children: [
@@ -275,10 +275,10 @@ class CartScreen extends ConsumerWidget {
         width: 32,
         height: 32,
         decoration: BoxDecoration(
-          color: onPressed != null ? const Color(0xFF00D1FF).withOpacity(0.1) : Colors.transparent,
+          color: onPressed != null ? const Color(0xFF00D1FF).withValues(alpha: 0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: onPressed != null ? const Color(0xFF00D1FF) : Colors.white.withOpacity(0.1),
+            color: onPressed != null ? const Color(0xFF00D1FF) : Colors.white.withValues(alpha: 0.1),
           ),
         ),
         child: Icon(
@@ -297,7 +297,7 @@ class CartScreen extends ConsumerWidget {
         color: const Color(0xFF161B22),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         border: Border(
-          top: BorderSide(color: Colors.white.withOpacity(0.06), width: 1),
+          top: BorderSide(color: Colors.white.withValues(alpha: 0.06), width: 1),
         ),
       ),
       child: Column(

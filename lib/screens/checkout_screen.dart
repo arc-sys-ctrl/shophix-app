@@ -91,10 +91,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> with TickerProviderStat
       decoration: BoxDecoration(
         color: const Color(0xFF161B22),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF00D1FF).withOpacity(0.1),
+            color: const Color(0xFF00D1FF).withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -127,7 +127,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> with TickerProviderStat
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF00D1FF).withOpacity(0.1),
+                  color: const Color(0xFF00D1FF).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
@@ -195,7 +195,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> with TickerProviderStat
       decoration: BoxDecoration(
         color: const Color(0xFF161B22),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: TextFormField(
         controller: controller,
@@ -267,16 +267,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> with TickerProviderStat
       duration: const Duration(milliseconds: 200),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isSelected ? color.withOpacity(0.05) : const Color(0xFF161B22),
+        color: isSelected ? color.withValues(alpha: 0.05) : const Color(0xFF161B22),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isSelected ? color : Colors.white.withOpacity(0.05),
+          color: isSelected ? color : Colors.white.withValues(alpha: 0.05),
           width: isSelected ? 2 : 1,
         ),
         boxShadow: isSelected
             ? [
                 BoxShadow(
-                  color: color.withOpacity(0.2),
+                  color: color.withValues(alpha: 0.2),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -291,7 +291,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> with TickerProviderStat
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isSelected ? color : Colors.white.withOpacity(0.05),
+                color: isSelected ? color : Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: Colors.white, size: 24),
@@ -344,7 +344,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> with TickerProviderStat
       decoration: BoxDecoration(
         color: const Color(0xFF161B22),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -363,7 +363,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> with TickerProviderStat
             decoration: BoxDecoration(
               color: const Color(0xFF0A0E14),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
             child: TextField(
               controller: _phoneController,
@@ -557,7 +557,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> with TickerProviderStat
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF00D1FF).withOpacity(0.1),
+                color: const Color(0xFF00D1FF).withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
