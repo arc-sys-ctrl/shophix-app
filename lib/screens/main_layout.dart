@@ -8,6 +8,7 @@ import 'home_screen.dart';
 import 'search_screen.dart';
 import 'cart_screen.dart';
 import 'profile_screen.dart';
+import 'checklist_screen.dart';
 
 class MainLayout extends ConsumerWidget {
   const MainLayout({super.key});
@@ -20,6 +21,7 @@ class MainLayout extends ConsumerWidget {
       HomeScreen(),
       SearchScreen(),
       CartScreen(),
+      ChecklistScreen(),
       ProfileScreen(),
     ];
 
@@ -73,7 +75,8 @@ class _SophixNavBar extends StatelessWidget {
                   _NavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home', index: 0, currentIndex: currentIndex, onTap: onTap),
                   _NavItem(icon: Icons.search_outlined, activeIcon: Icons.search_rounded, label: 'Discover', index: 1, currentIndex: currentIndex, onTap: onTap),
                   _NavItem(icon: Icons.shopping_bag_outlined, activeIcon: Icons.shopping_bag_rounded, label: 'Cart', index: 2, currentIndex: currentIndex, onTap: onTap),
-                  _NavItem(icon: Icons.person_outline_rounded, activeIcon: Icons.person_rounded, label: 'Profile', index: 3, currentIndex: currentIndex, onTap: onTap),
+                  _NavItem(icon: Icons.checklist_outlined, activeIcon: Icons.checklist_rounded, label: 'Lists', index: 3, currentIndex: currentIndex, onTap: onTap),
+                  _NavItem(icon: Icons.person_outline_rounded, activeIcon: Icons.person_rounded, label: 'Profile', index: 4, currentIndex: currentIndex, onTap: onTap),
                 ],
               ),
             ),
@@ -111,14 +114,14 @@ class _NavItem extends StatelessWidget {
       },
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 72,
+        width: 64,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOut,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
               decoration: BoxDecoration(
                 color: isActive ? const Color(0xFF00D1FF).withValues(alpha: 0.12) : Colors.transparent,
                 borderRadius: BorderRadius.circular(20),
@@ -133,7 +136,7 @@ class _NavItem extends StatelessWidget {
             Text(
               label,
               style: GoogleFonts.inter(
-                fontSize: 10,
+                fontSize: 9,
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
                 color: isActive ? const Color(0xFF00D1FF) : Colors.white38,
               ),

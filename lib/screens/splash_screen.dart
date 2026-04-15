@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../providers/auth_provider.dart';
 import 'onboarding_screen.dart';
+import 'auth_screen.dart';
+import 'main_layout.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with TickerProviderStateMixin {
   late AnimationController _logoController;
   late AnimationController _orbController;
@@ -20,6 +25,9 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _logoOpacity;
   late Animation<double> _taglineOpacity;
   late Animation<double> _exitOpacity;
+
+  static const _storage = FlutterSecureStorage();
+  static const _onboardingKey = 'sophix_onboarding_seen';
 
   @override
   void initState() {
@@ -82,14 +90,42 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _startSequence() async {
     await Future.delayed(const Duration(milliseconds: 300));
     _logoController.forward();
-    await Future.delayed(const Duration(milliseconds: 2200));
+    // Wait for animation + let auth state load
+    await Future.delayed(const Duration(milliseconds: 2300));
     _exitController.forward();
     await Future.delayed(const Duration(milliseconds: 550));
     if (mounted) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      _navigateBasedOnAuth();
+    }
+  }
+
+  /// Auth-aware routing:
+  /// - Logged in → MainLayout
+  /// - First time (no onboarding key) → OnboardingScreen
+  /// - Returning user, not logged in → AuthScreen
+  Future<void> _navigateBasedOnAuth() async {
+    final authState = ref.read(authProvider);
+
+    Widget destination;
+
+    if (authState.isLoggedIn) {
+      destination = const MainLayout();
+    } else {
+      final seen = await _storage.read(key: _onboardingKey);
+      if (seen == null) {
+        // First launch — show onboarding, then mark as seen
+        await _storage.write(key: _onboardingKey, value: 'true');
+        destination = const OnboardingScreen();
+      } else {
+        destination = const AuthScreen();
+      }
+    }
+
+    if (mounted) {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (_, _, _) => const OnboardingScreen(),
+          pageBuilder: (_, __, ___) => destination,
           transitionDuration: Duration.zero,
         ),
       );

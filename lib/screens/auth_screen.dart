@@ -795,12 +795,26 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
 
   // ─── Handlers ───────────────────────────────────────────
 
-  void _handleGoogleSignIn() {
-    _showComingSoonSnack('Google Sign-In coming soon. Configure OAuth to enable.');
+  Future<void> _handleGoogleSignIn(WidgetRef ref) async {
+    HapticFeedback.mediumImpact();
+    final success = await ref.read(authProvider.notifier).loginWithGoogle();
+    if (success && mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const MainLayout()),
+        (route) => false,
+      );
+    }
   }
 
-  void _handleAppleSignIn() {
-    _showComingSoonSnack('Apple Sign-In coming soon. Configure Sign in with Apple to enable.');
+  Future<void> _handleAppleSignIn(WidgetRef ref) async {
+    HapticFeedback.mediumImpact();
+    final success = await ref.read(authProvider.notifier).loginWithApple();
+    if (success && mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const MainLayout()),
+        (route) => false,
+      );
+    }
   }
 
   void _showComingSoonSnack(String msg) {
