@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user.dart';
 import '../services/auth_service.dart';
+import '../services/social_auth_service.dart';
 
 final authServiceProvider = Provider((ref) => AuthService());
+final socialAuthServiceProvider = Provider((ref) => SocialAuthService());
 
 class AuthState {
   final User? user;
@@ -18,12 +20,13 @@ class AuthState {
       error: error ?? this.error,
     );
   }
+
+  bool get isLoggedIn => user != null;
 }
 
 class AuthNotifier extends Notifier<AuthState> {
   @override
   AuthState build() {
-    // Initialize state
     Future.microtask(() => _loadUser());
     return AuthState();
   }
@@ -40,7 +43,10 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       final authService = ref.read(authServiceProvider);
       final result = await authService.login(email, password);
-      state = state.copyWith(user: User.fromJson(result['user']), isLoading: false);
+      state = state.copyWith(
+        user: User.fromJson(result['user']),
+        isLoading: false,
+      );
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString(), isLoading: false);
@@ -53,7 +59,6 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       final authService = ref.read(authServiceProvider);
       await authService.register(fullName, email, password);
-      // After registration, user needs to login
       state = state.copyWith(isLoading: false);
       return true;
     } catch (e) {
@@ -62,9 +67,47 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  // ─── Social Sign-In ──────────────────────────────────────
+
+  Future<bool> loginWithGoogle() async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final service = ref.read(socialAuthServiceProvider);
+      final user = await service.signInWithGoogle();
+      state = state.copyWith(user: user, isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        error: e.toString().replaceAll('Exception: ', ''),
+        isLoading: false,
+      );
+      return false;
+    }
+  }
+
+  Future<bool> loginWithApple() async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final service = ref.read(socialAuthServiceProvider);
+      final user = await service.signInWithApple();
+      state = state.copyWith(user: user, isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        error: e.toString().replaceAll('Exception: ', ''),
+        isLoading: false,
+      );
+      return false;
+    }
+  }
+
+  // ─── Logout ──────────────────────────────────────────────
+
   Future<void> logout() async {
     final authService = ref.read(authServiceProvider);
+    final socialService = ref.read(socialAuthServiceProvider);
     await authService.logout();
+    await socialService.signOut();
     state = AuthState();
   }
 }

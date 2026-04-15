@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -236,23 +237,36 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
           const SizedBox(height: 28),
 
           // Social buttons
-          _buildSocialButton(
-            label: 'Continue with Google',
-            icon: FontAwesomeIcons.google,
-            bgColor: Colors.white,
-            textColor: const Color(0xFF1F1F1F),
-            iconColor: const Color(0xFF4285F4),
-            onTap: _handleGoogleSignIn,
-          ),
-          const SizedBox(height: 12),
-          _buildSocialButton(
-            label: 'Continue with Apple',
-            icon: FontAwesomeIcons.apple,
-            bgColor: const Color(0xFF1C1C1E),
-            textColor: Colors.white,
-            iconColor: Colors.white,
-            borderColor: Colors.white12,
-            onTap: _handleAppleSignIn,
+          Consumer(
+            builder: (context, ref, _) {
+              final authState = ref.watch(authProvider);
+              return Column(
+                children: [
+                  _buildSocialButton(
+                    label: 'Continue with Google',
+                    icon: FontAwesomeIcons.google,
+                    bgColor: Colors.white,
+                    textColor: const Color(0xFF1F1F1F),
+                    iconColor: const Color(0xFF4285F4),
+                    isLoading: authState.isLoading,
+                    onTap: () => _handleGoogleSignIn(ref),
+                  ),
+                  if (!Platform.isAndroid) ...[
+                    const SizedBox(height: 12),
+                    _buildSocialButton(
+                      label: 'Continue with Apple',
+                      icon: FontAwesomeIcons.apple,
+                      bgColor: const Color(0xFF1C1C1E),
+                      textColor: Colors.white,
+                      iconColor: Colors.white,
+                      borderColor: Colors.white12,
+                      isLoading: authState.isLoading,
+                      onTap: () => _handleAppleSignIn(ref),
+                    ),
+                  ],
+                ],
+              );
+            },
           ),
           const SizedBox(height: 28),
 
@@ -329,14 +343,15 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     required Color textColor,
     required Color iconColor,
     Color? borderColor,
+    bool isLoading = false,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: isLoading ? null : onTap,
       child: Container(
         height: 56,
         decoration: BoxDecoration(
-          color: bgColor,
+          color: isLoading ? bgColor.withValues(alpha: 0.6) : bgColor,
           borderRadius: BorderRadius.circular(16),
           border: borderColor != null ? Border.all(color: borderColor) : null,
           boxShadow: [
@@ -347,21 +362,32 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
             ),
           ],
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FaIcon(icon, size: 20, color: iconColor),
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: textColor,
+        child: isLoading
+            ? Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: iconColor,
+                  ),
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  FaIcon(icon, size: 20, color: iconColor),
+                  const SizedBox(width: 12),
+                  Text(
+                    label,
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
