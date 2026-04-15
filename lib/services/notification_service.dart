@@ -72,12 +72,7 @@ class NotificationService {
       if (messaging == null) return;
 
       await requestPermission();
-
-      final token = await _getToken(messaging);
-      if (token != null) {
-        debugPrint('[NotificationService] FCM Token: $token');
-        // TODO: Send token to your backend: POST /api/devices/register
-      }
+      debugPrint('[NotificationService] FCM ready (configure Firebase to get tokens).');
 
       // Foreground message handler
       _listenForeground(messaging);

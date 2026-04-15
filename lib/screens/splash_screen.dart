@@ -125,7 +125,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     if (mounted) {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (_, __, ___) => destination,
+          pageBuilder: (context, a1, a2) => destination,
           transitionDuration: Duration.zero,
         ),
       );

@@ -89,7 +89,7 @@ class SocialAuthService {
     debugPrint('[$provider] Mock sign-in — Firebase not configured. Using demo user.');
     final user = User(
       id: 'mock_${provider.toLowerCase()}_001',
-      fullName: 'Demo ${provider} User',
+      fullName: 'Demo $provider User',
       email: 'demo@sophix.app',
       avatarUrl: null,
       authMethod: provider.toLowerCase(),

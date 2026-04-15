@@ -1,5 +1,4 @@
-import 'dart:io';
-import 'dart:math' as math;
+
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -209,7 +208,7 @@ class _ChecklistScreenState extends ConsumerState<ChecklistScreen>
               tween: Tween(begin: 0.0, end: progress),
               duration: const Duration(milliseconds: 600),
               curve: Curves.easeOut,
-              builder: (_, value, __) => LinearProgressIndicator(
+              builder: (context, value, child) => LinearProgressIndicator(
                 value: value,
                 backgroundColor: Colors.white.withValues(alpha: 0.06),
                 valueColor: const AlwaysStoppedAnimation(Color(0xFF00D1FF)),
