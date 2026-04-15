@@ -124,19 +124,14 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     return Stack(
       children: [
         Positioned(
-          top: -60 + t * 40,
-          right: -80,
-          child: _glowOrb(260, const Color(0xFF00D1FF), 0.18),
+          top: -100 + t * 50,
+          right: -100,
+          child: _glowOrb(300, const Color(0xFF00D1FF), 0.12),
         ),
         Positioned(
-          top: 180 - t * 30,
-          left: -100,
-          child: _glowOrb(320, const Color(0xFF7C3AED), 0.13),
-        ),
-        Positioned(
-          bottom: 100 + t * 20,
-          right: -60,
-          child: _glowOrb(200, const Color(0xFF00D1FF), 0.07),
+          bottom: -150 + t * 40,
+          left: -120,
+          child: _glowOrb(400, const Color(0xFF003366), 0.15),
         ),
       ],
     );
@@ -150,6 +145,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
         shape: BoxShape.circle,
         gradient: RadialGradient(
           colors: [color.withOpacity(opacity), Colors.transparent],
+          stops: const [0.2, 1.0],
         ),
       ),
     );
@@ -157,56 +153,55 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
 
   Widget _buildTopBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          GestureDetector(
-            onTap: () =>
-                Navigator.canPop(context) ? Navigator.pop(context) : null,
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withOpacity(0.08)),
-              ),
-              child: const Icon(Icons.arrow_back_ios_new,
-                  size: 15, color: Colors.white60),
-            ),
+          _buildGlassIconButton(
+            icon: Icons.arrow_back_ios_new_rounded,
+            onTap: () => Navigator.canPop(context) ? Navigator.pop(context) : null,
           ),
-          const Spacer(),
           Row(
             children: [
               Container(
-                width: 30,
-                height: 30,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF00D1FF), Color(0xFF7C3AED)],
-                  ),
-                  borderRadius: BorderRadius.circular(9),
+                  gradient: const LinearGradient(colors: [Color(0xFF00D1FF), Color(0xFF003366)]),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Center(
-                  child: Text('S',
-                      style: GoogleFonts.outfit(
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          fontSize: 16)),
+                  child: Text('S', style: GoogleFonts.outfit(fontWeight: FontWeight.w900, color: Colors.white, fontSize: 16)),
                 ),
               ),
-              const SizedBox(width: 8),
-              Text('SOPHIX',
-                  style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 4,
-                      color: Colors.white,
-                      fontSize: 16)),
+              const SizedBox(width: 10),
+              Text('SOPHIX', style: GoogleFonts.outfit(fontWeight: FontWeight.w900, letterSpacing: 3, color: Colors.white, fontSize: 16)),
             ],
           ),
-          const Spacer(),
-          const SizedBox(width: 40),
+          const SizedBox(width: 44),
         ],
+      ),
+    );
+  }
+
+  Widget _buildGlassIconButton({required IconData icon, required VoidCallback onTap}) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white.withOpacity(0.08)),
+            ),
+            child: Icon(icon, size: 18, color: Colors.white),
+          ),
+        ),
       ),
     );
   }
@@ -302,37 +297,27 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
 
   Widget _buildTabToggle() {
     return Container(
-      height: 52,
+      height: 54,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withOpacity(0.04),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.07)),
+        border: Border.all(color: Colors.white.withOpacity(0.06)),
       ),
       child: TabBar(
         controller: _tabController,
         indicator: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF00D1FF), Color(0xFF0099CC)],
-          ),
+          color: const Color(0xFF161B22),
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF00D1FF).withOpacity(0.35),
-              blurRadius: 12,
-              spreadRadius: 0,
-            ),
-          ],
+          border: Border.all(color: Colors.white.withOpacity(0.08)),
         ),
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
-        labelStyle:
-            GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 14),
-        unselectedLabelStyle:
-            GoogleFonts.outfit(fontWeight: FontWeight.w500, fontSize: 14),
-        labelColor: Colors.black,
+        labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w800, fontSize: 13, letterSpacing: 0.5),
+        unselectedLabelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 13, letterSpacing: 0.5),
+        labelColor: const Color(0xFF00D1FF),
         unselectedLabelColor: Colors.white38,
-        tabs: const [Tab(text: 'Sign In'), Tab(text: 'Sign Up')],
+        tabs: const [Tab(text: 'SIGN IN'), Tab(text: 'SIGN UP')],
       ),
     );
   }
@@ -608,48 +593,46 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: GoogleFonts.inter(
-                color: Colors.white54,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5)),
-        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(label.toUpperCase(),
+              style: GoogleFonts.inter(
+                  color: Colors.white38,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1)),
+        ),
         TextFormField(
           controller: controller,
           validator: validator,
           keyboardType: keyboardType,
-          style: GoogleFonts.inter(color: Colors.white, fontSize: 15),
+          style: GoogleFonts.inter(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: GoogleFonts.inter(color: Colors.white18, fontSize: 15),
-            prefixIcon: Icon(icon, color: Colors.white24, size: 20),
+            hintStyle: GoogleFonts.inter(color: Colors.white12, fontSize: 15),
+            prefixIcon: Icon(icon, color: Colors.white38, size: 18),
             filled: true,
-            fillColor: Colors.white.withOpacity(0.05),
-            contentPadding:
-                const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            fillColor: const Color(0xFF161B22),
+            contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide:
-                  const BorderSide(color: Color(0xFF00D1FF), width: 1.5),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF00D1FF), width: 1.5),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide:
-                  const BorderSide(color: Color(0xFFEF4444), width: 1),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide:
-                  const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
             ),
           ),
         ),
@@ -668,57 +651,54 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: GoogleFonts.inter(
-                color: Colors.white54,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5)),
-        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(label.toUpperCase(),
+              style: GoogleFonts.inter(
+                  color: Colors.white38,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1)),
+        ),
         TextFormField(
           controller: controller,
           obscureText: obscure,
           validator: validator,
-          style: GoogleFonts.inter(color: Colors.white, fontSize: 15),
+          style: GoogleFonts.inter(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: GoogleFonts.inter(color: Colors.white18, fontSize: 15),
-            prefixIcon:
-                const Icon(Icons.lock_outline_rounded, color: Colors.white24, size: 20),
+            hintStyle: GoogleFonts.inter(color: Colors.white12, fontSize: 15),
+            prefixIcon: const Icon(Icons.lock_outline_rounded, color: Colors.white38, size: 18),
             suffixIcon: GestureDetector(
               onTap: onToggle,
               child: Icon(
                 obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                color: Colors.white24,
-                size: 20,
+                color: Colors.white38,
+                size: 18,
               ),
             ),
             filled: true,
-            fillColor: Colors.white.withOpacity(0.05),
-            contentPadding:
-                const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            fillColor: const Color(0xFF161B22),
+            contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide:
-                  const BorderSide(color: Color(0xFF00D1FF), width: 1.5),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFF00D1FF), width: 1.5),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide:
-                  const BorderSide(color: Color(0xFFEF4444), width: 1),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide:
-                  const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
             ),
           ),
         ),
@@ -734,56 +714,31 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
       width: double.infinity,
       height: 60,
       child: ElevatedButton(
-        onPressed: isLoading ? null : onTap,
+        onPressed: isLoading ? null : () {
+          HapticFeedback.mediumImpact();
+          onTap();
+        },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          disabledBackgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          padding: EdgeInsets.zero,
+          backgroundColor: const Color(0xFF00D1FF),
+          foregroundColor: Colors.black,
+          disabledBackgroundColor: Colors.white10,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         ),
-        child: Ink(
-          decoration: BoxDecoration(
-            gradient: isLoading
-                ? null
-                : const LinearGradient(
-                    colors: [Color(0xFF00D1FF), Color(0xFF0099BB)],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-            color: isLoading ? Colors.white10 : null,
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: isLoading
-                ? null
-                : [
-                    BoxShadow(
-                      color: const Color(0xFF00D1FF).withOpacity(0.4),
-                      blurRadius: 20,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-          ),
-          child: Container(
-            alignment: Alignment.center,
-            child: isLoading
-                ? const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2.5, color: Colors.white60),
-                  )
-                : Text(
-                    label,
-                    style: GoogleFonts.outfit(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-          ),
-        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.black),
+              )
+            : Text(
+                label.toUpperCase(),
+                style: GoogleFonts.outfit(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1,
+                ),
+              ),
       ),
     );
   }

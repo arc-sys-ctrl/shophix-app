@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -52,25 +53,30 @@ class _SophixNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF0D1117),
-        border: Border(
-          top: BorderSide(color: Colors.white.withOpacity(0.06), width: 1),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _NavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home', index: 0, currentIndex: currentIndex, onTap: onTap),
-              _NavItem(icon: Icons.search_outlined, activeIcon: Icons.search_rounded, label: 'Discover', index: 1, currentIndex: currentIndex, onTap: onTap),
-              _NavItem(icon: Icons.shopping_bag_outlined, activeIcon: Icons.shopping_bag_rounded, label: 'Cart', index: 2, currentIndex: currentIndex, onTap: onTap),
-              _NavItem(icon: Icons.person_outline_rounded, activeIcon: Icons.person_rounded, label: 'Profile', index: 3, currentIndex: currentIndex, onTap: onTap),
-            ],
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF0D1117).withOpacity(0.8),
+            border: Border(
+              top: BorderSide(color: Colors.white.withOpacity(0.06), width: 1),
+            ),
+          ),
+          child: SafeArea(
+            top: false,
+            child: SizedBox(
+              height: 64,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _NavItem(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home', index: 0, currentIndex: currentIndex, onTap: onTap),
+                  _NavItem(icon: Icons.search_outlined, activeIcon: Icons.search_rounded, label: 'Discover', index: 1, currentIndex: currentIndex, onTap: onTap),
+                  _NavItem(icon: Icons.shopping_bag_outlined, activeIcon: Icons.shopping_bag_rounded, label: 'Cart', index: 2, currentIndex: currentIndex, onTap: onTap),
+                  _NavItem(icon: Icons.person_outline_rounded, activeIcon: Icons.person_rounded, label: 'Profile', index: 3, currentIndex: currentIndex, onTap: onTap),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -99,7 +105,10 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final isActive = index == currentIndex;
     return GestureDetector(
-      onTap: () => onTap(index),
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap(index);
+      },
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
         width: 72,
