@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -90,7 +89,7 @@ class _SplashScreenState extends State<SplashScreen>
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const OnboardingScreen(),
+          pageBuilder: (_, _, _) => const OnboardingScreen(),
           transitionDuration: Duration.zero,
         ),
       );
@@ -194,12 +193,12 @@ class _SplashScreenState extends State<SplashScreen>
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF00D1FF).withOpacity(0.5),
+                color: const Color(0xFF00D1FF).withValues(alpha: 0.5),
                 blurRadius: 40,
                 spreadRadius: 0,
               ),
               BoxShadow(
-                color: const Color(0xFF7C3AED).withOpacity(0.3),
+                color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
                 blurRadius: 60,
                 spreadRadius: 10,
                 offset: const Offset(10, 10),
@@ -251,7 +250,7 @@ class _SplashScreenState extends State<SplashScreen>
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: RadialGradient(
-            colors: [color.withOpacity(opacity), Colors.transparent],
+            colors: [color.withValues(alpha: opacity), Colors.transparent],
           ),
         ),
       ),
@@ -263,7 +262,7 @@ class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.025)
+      ..color = Colors.white.withValues(alpha: 0.025)
       ..strokeWidth = 0.5;
 
     const spacing = 40.0;

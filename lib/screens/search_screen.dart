@@ -68,9 +68,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           child: Container(
             height: 56,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withOpacity(0.08)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
             ),
             child: TextField(
               controller: _searchController,
@@ -126,7 +126,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF00D1FF).withOpacity(0.5),
+                      color: const Color(0xFF00D1FF).withValues(alpha: 0.5),
                     ),
                   ),
                 ),
@@ -167,7 +167,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFF161B22),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -177,7 +177,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             Text(
               text,
               style: GoogleFonts.inter(
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
@@ -218,7 +218,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFF161B22),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.05)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -292,7 +292,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFF161B22),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
         ),
         child: Row(
           children: [
@@ -309,7 +309,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               ),
               child: product.imageUrl.isEmpty ? Icon(
                 Icons.inventory_2_outlined,
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
                 size: 24,
               ) : null,
             ),
@@ -346,7 +346,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         '${product.price.toStringAsFixed(2)} KES',
                         style: GoogleFonts.inter(
                           fontSize: 14,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -367,7 +367,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               ),
             ),
             const SizedBox(width: 8),
-            Icon(Icons.chevron_right_rounded, color: Colors.white.withOpacity(0.1), size: 24),
+            Icon(Icons.chevron_right_rounded, color: Colors.white.withValues(alpha: 0.1), size: 24),
           ],
         ),
       ),
@@ -382,7 +382,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.03),
+              color: Colors.white.withValues(alpha: 0.03),
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.search_off_rounded, color: Colors.white12, size: 64),

@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/product.dart';
 import '../models/cart_item.dart';
 import '../providers/cart_provider.dart';
-import 'checkout_screen.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   final Product product;
@@ -145,8 +144,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
                 height: 44,
                 width: 44,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
-                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                  color: Colors.white.withValues(alpha: 0.05),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: IconButton(
@@ -170,8 +169,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
                   height: 44,
                   width: 44,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                    color: Colors.white.withValues(alpha: 0.05),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: IconButton(
@@ -199,7 +198,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
             child: widget.product.imageUrl.isEmpty ? Center(
               child: Icon(
                 Icons.inventory_2_outlined,
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
                 size: 100,
               ),
             ) : Container(
@@ -211,7 +210,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
                     const Color(0xFF0A0E14),
                     Colors.transparent,
                     Colors.transparent,
-                    const Color(0xFF0A0E14).withOpacity(0.5),
+                    const Color(0xFF0A0E14).withValues(alpha: 0.5),
                   ],
                   stops: const [0.0, 0.3, 0.7, 1.0],
                 ),
@@ -260,9 +259,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF00D1FF).withOpacity(0.1),
+                color: const Color(0xFF00D1FF).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFF00D1FF).withOpacity(0.2)),
+                border: Border.all(color: const Color(0xFF00D1FF).withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
@@ -360,7 +359,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
                       color: isSelected ? const Color(0xFF00D1FF) : const Color(0xFF161B22),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: isSelected ? const Color(0xFF00D1FF) : Colors.white.withOpacity(0.05),
+                        color: isSelected ? const Color(0xFF00D1FF) : Colors.white.withValues(alpha: 0.05),
                         width: 1.5,
                       ),
                     ),
@@ -404,7 +403,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
           decoration: BoxDecoration(
             color: const Color(0xFF161B22),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.05)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -452,7 +451,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
           widget.product.description,
           style: GoogleFonts.inter(
             fontSize: 15,
-            color: Colors.white.withOpacity(0.7),
+            color: Colors.white.withValues(alpha: 0.7),
             height: 1.7,
           ),
         ),
@@ -466,7 +465,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
       decoration: BoxDecoration(
         color: const Color(0xFF161B22),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Column(
         children: [
@@ -512,7 +511,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            const Color(0xFF0A0E14).withOpacity(0.0),
+            const Color(0xFF0A0E14).withValues(alpha: 0.0),
             const Color(0xFF0A0E14),
           ],
         ),
@@ -525,7 +524,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
             decoration: BoxDecoration(
               color: const Color(0xFF161B22),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Colors.white.withOpacity(0.05)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
             ),
             child: IconButton(
               onPressed: () {},
