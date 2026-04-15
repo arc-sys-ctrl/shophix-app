@@ -2,8 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../providers/product_provider.dart';
-import '../providers/auth_provider.dart';
+import '../providers/navigation_provider.dart';
+import '../providers/cart_provider.dart';
 import 'auth_screen.dart';
 import 'product_detail_screen.dart';
 
