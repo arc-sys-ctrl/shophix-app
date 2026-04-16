@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../services/social_auth_service.dart';
+import '../services/notification_service.dart';
 
 final authServiceProvider = Provider((ref) => AuthService());
 final socialAuthServiceProvider = Provider((ref) => SocialAuthService());
@@ -43,10 +44,11 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       final authService = ref.read(authServiceProvider);
       final result = await authService.login(email, password);
-      state = state.copyWith(
         user: User.fromJson(result['user']),
         isLoading: false,
       );
+      // Sync FCM token with backend after successful login
+      NotificationService().initialize();
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString(), isLoading: false);
@@ -75,6 +77,8 @@ class AuthNotifier extends Notifier<AuthState> {
       final service = ref.read(socialAuthServiceProvider);
       final user = await service.signInWithGoogle();
       state = state.copyWith(user: user, isLoading: false);
+      // Sync FCM token with backend after successful social login
+      NotificationService().initialize();
       return true;
     } catch (e) {
       state = state.copyWith(
@@ -91,6 +95,8 @@ class AuthNotifier extends Notifier<AuthState> {
       final service = ref.read(socialAuthServiceProvider);
       final user = await service.signInWithApple();
       state = state.copyWith(user: user, isLoading: false);
+      // Sync FCM token with backend after successful social login
+      NotificationService().initialize();
       return true;
     } catch (e) {
       state = state.copyWith(

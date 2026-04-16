@@ -1,10 +1,14 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'auth_service.dart';
 
 /// Push notification service.
-/// Gracefully no-ops if Firebase is not yet configured.
-/// Once firebase_core is initialized in main.dart, FCM will auto-activate.
+/// Now fully connected to Firebase and the Sophix Backend.
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
@@ -12,6 +16,7 @@ class NotificationService {
 
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
+  final _storage = const FlutterSecureStorage();
 
   bool _initialized = false;
 
@@ -57,7 +62,7 @@ class NotificationService {
       _initialized = true;
       debugPrint('[NotificationService] Local notifications initialized.');
 
-      // ── FCM setup (only if Firebase is configured) ──
+      // ── FCM setup ──
       await _initFCM();
     } catch (e) {
       debugPrint('[NotificationService] Init failed (non-critical): $e');
@@ -66,53 +71,96 @@ class NotificationService {
 
   Future<void> _initFCM() async {
     try {
-      // Dynamic import to avoid crash when Firebase isn't configured
-      // ignore: avoid_dynamic_calls
-      final messaging = await _loadFirebaseMessaging();
-      if (messaging == null) return;
+      final messaging = FirebaseMessaging.instance;
 
+      // Request permissions (especially for iOS and Android 13+)
       await requestPermission();
-      debugPrint('[NotificationService] FCM ready (configure Firebase to get tokens).');
 
-      // Foreground message handler
-      _listenForeground(messaging);
+      // Get current token and sync
+      final token = await messaging.getToken();
+      if (token != null) {
+        debugPrint('[NotificationService] FCM Token: $token');
+        await syncTokenToBackend(token);
+      }
+
+      // Listen for token refreshes
+      messaging.onTokenRefresh.listen((newToken) {
+        syncTokenToBackend(newToken);
+      });
+
+      // Foreground message listener
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        debugPrint('[NotificationService] Foreground message received: ${message.notification?.title}');
+        
+        final notification = message.notification;
+        final android = message.notification?.android;
+
+        if (notification != null && android != null) {
+          showNotification(
+            title: notification.title ?? '',
+            body: notification.body ?? '',
+            payload: jsonEncode(message.data),
+          );
+        }
+      });
+
+      // Setup opened app from notification
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        debugPrint('[NotificationService] App opened via notification: ${message.messageId}');
+      });
+
     } catch (e) {
-      debugPrint('[NotificationService] FCM setup skipped: $e');
+      debugPrint('[NotificationService] FCM setup skipped or failed: $e');
     }
   }
 
-  /// Dynamically load firebase_messaging to avoid MissingPluginException
-  /// when google-services.json is not yet configured.
-  Future<dynamic> _loadFirebaseMessaging() async {
+  /// Syncs the FCM token with the Sophix Backend to enable targeted push
+  Future<void> syncTokenToBackend(String token) async {
     try {
-      // This will throw if Firebase isn't initialized
-      // ignore: invalid_use_of_visible_for_testing_member
-      final fcm = await _tryGetFCM();
-      return fcm;
-    } catch (_) {
-      return null;
-    }
-  }
+      // Get the current user session token
+      final userToken = await _storage.read(key: 'token');
+      if (userToken == null) {
+        debugPrint('[NotificationService] No user token found, skipping backend sync.');
+        return;
+      }
 
-  Future<dynamic> _tryGetFCM() async {
-    // We attempt to use the plugin; if Firebase not initialized, it throws
-    return null; // Safe placeholder — real FCM is set up below via direct import
+      // Backend endpoint we created in the production phase
+      final response = await http.post(
+        Uri.parse('http://localhost:5001/api/devices/register'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $userToken',
+        },
+        body: jsonEncode({
+          'token': token,
+          'platform': Platform.operatingSystem,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        debugPrint('[NotificationService] FCM token registered with backend.');
+      } else {
+        debugPrint('[NotificationService] Backend sync failed: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('[NotificationService] Backend sync error: $e');
+    }
   }
 
   // ─── Permissions ───────────────────────────────────────
 
   Future<void> requestPermission() async {
-    if (Platform.isIOS) {
-      await _localNotifications
-          .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
-          ?.requestPermissions(alert: true, badge: true, sound: true);
-    } else if (Platform.isAndroid) {
-      await _localNotifications
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>()
-          ?.requestNotificationsPermission();
-    }
+    try {
+      await FirebaseMessaging.instance.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
+    } catch (_) {}
   }
 
   // ─── Show a local notification ─────────────────────────
@@ -148,8 +196,6 @@ class NotificationService {
     await _localNotifications.show(id, title, body, details, payload: payload);
   }
 
-  // ─── Demo: fire a test notification ────────────────────
-
   Future<void> showDemoNotification() async {
     await showNotification(
       title: '🛍️ Sophix',
@@ -158,15 +204,7 @@ class NotificationService {
     );
   }
 
-  // ─── FCM foreground listener ───────────────────────────
-
-  void _listenForeground(dynamic messaging) {
-    // Implemented via direct firebase_messaging import in main.dart
-    // This method is a hook for when FCM is fully configured.
-  }
-
   void _onNotificationTap(NotificationResponse response) {
     debugPrint('[NotificationService] Tapped: ${response.payload}');
-    // TODO: Navigate based on payload (e.g., open order detail)
   }
 }

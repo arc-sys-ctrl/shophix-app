@@ -2,29 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
 
 /// Top-level FCM background message handler.
 /// Must be a top-level function (not a class method).
-// @pragma('vm:entry-point')
-// Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-//   // Handle FCM background messages here once Firebase is configured.
-//   debugPrint('[FCM Background] ${message.notification?.title}');
-// }
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Handle FCM background messages here once Firebase is configured.
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  debugPrint('[FCM Background] ${message.notification?.title}');
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize Firebase (Connected to your real project via SHA fingerprints)
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  } catch (e) {
+    debugPrint('[Firebase] Init failed (GoogleService-Info.plist missing?): $e');
+  }
+
   // Initialize Stripe
   Stripe.publishableKey = 'pk_test_placeholder_for_sophix_stripe';
 
-  // Initialize push notifications (graceful no-op if Firebase not configured)
+  // Initialize push notifications (Now fully activated via FirebaseMessaging)
   await NotificationService().initialize();
-
-  // Uncomment after adding google-services.json / GoogleService-Info.plist:
-  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   runApp(
     const ProviderScope(
