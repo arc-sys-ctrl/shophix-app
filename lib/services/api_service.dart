@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/product.dart';
 
+import '../config/env_config.dart';
+
 class ApiService {
-  // Use 10.0.2.2 for Android Emulator to hit localhost, or actual IP for physical devices
-  static const String baseUrl = 'http://localhost:5001/api'; 
+  static final String baseUrl = EnvConfig.baseUrl; 
 
   Future<List<Product>> fetchProducts({bool? isNew, bool? isTrending}) async {
     final queryParams = <String, String>{};
@@ -28,7 +29,9 @@ class ApiService {
 
   String getImageUrl(String path) {
     if (path.startsWith('http')) return path;
-    return 'http://localhost:5001$path';
+    // Remove /api and get origin for static files
+    final origin = baseUrl.replaceAll('/api', '');
+    return '$origin$path';
   }
 
   // --- Payment APIs ---

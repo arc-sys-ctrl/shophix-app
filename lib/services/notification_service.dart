@@ -125,7 +125,7 @@ class NotificationService {
 
       // Backend endpoint we created in the production phase
       final response = await http.post(
-        Uri.parse('http://localhost:5001/api/devices/register'),
+        Uri.parse('${EnvConfig.baseUrl}/devices/register'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $userToken',

@@ -3,8 +3,10 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/user.dart';
 
+import '../config/env_config.dart';
+
 class AuthService {
-  static const String baseUrl = 'http://localhost:5001/api/auth';
+  static final String baseUrl = EnvConfig.authUrl;
   final _storage = const FlutterSecureStorage();
 
   Future<Map<String, dynamic>> login(String email, String password) async {
