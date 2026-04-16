@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "111888953034",
+    "project_id": "sophix-162f6",
+    "storage_bucket": "sophix-162f6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:111888953034:android:27ee0a94e726f1e4bd4e33",
+        "android_client_info": {
+          "package_name": "com.example.sophix_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCfxfRyCnAKk0Ye4YId22j-Gv_aZUrYijo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
