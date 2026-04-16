@@ -9,12 +9,13 @@ class EnvConfig {
   /// Update the production URL once you have a live domain or static IP.
   static String get baseUrl {
     if (isProduction) {
-      // TODO: Replace with your actual production domain (e.g., https://api.sophix-luxury.com)
+      // TODO: Replace with your actual production domain
       return 'https://api.sophix-luxury.com/api';
     } else {
-      // Default to localhost for emulator/simulator development.
-      // Use 10.0.2.2 for Android Emulator if hitting a local server.
-      return 'http://localhost:5001/api';
+      // For local development
+      // Use 10.0.2.2 for Android Emulator, otherwise localhost
+      const String host = kIsWeb ? 'localhost' : (defaultTargetPlatform == TargetPlatform.android ? '10.0.2.2' : 'localhost');
+      return 'http://$host:5000/api';
     }
   }
 
