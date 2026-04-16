@@ -5,7 +5,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'auth_service.dart';
 
 /// Push notification service.
 /// Now fully connected to Firebase and the Sophix Backend.
