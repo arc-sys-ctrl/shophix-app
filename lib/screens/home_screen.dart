@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../models/product.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/cart_provider.dart';
 import '../providers/product_provider.dart';
+import '../providers/category_provider.dart';
+import '../providers/catalog_filter_provider.dart';
 import '../providers/auth_provider.dart';
+import '../theme/app_theme.dart';
+import '../widgets/product_image.dart';
 import 'auth_screen.dart';
 import 'product_detail_screen.dart';
 
@@ -44,41 +49,92 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
     super.dispose();
   }
 
+  List<Widget> _homeShopRailSlivers(AsyncValue<HomeRails> railsAsync) {
+    return railsAsync.when(
+      data: (rails) {
+        final list = <Widget>[
+          SliverToBoxAdapter(
+            child: _buildProductSection(
+              context,
+              title: rails.primaryTitle,
+              asyncValue: AsyncValue<List<Product>>.data(rails.primary),
+              onRetry: () => ref.invalidate(homeRailsProvider),
+            ),
+          ),
+        ];
+        if (rails.showSecondary && rails.secondary.isNotEmpty) {
+          list.add(
+            SliverToBoxAdapter(
+              child: _buildProductSection(
+                context,
+                title: rails.secondaryTitle,
+                asyncValue: AsyncValue<List<Product>>.data(rails.secondary),
+                onRetry: () => ref.invalidate(homeRailsProvider),
+              ),
+            ),
+          );
+        }
+        return list;
+      },
+      loading: () => [
+        SliverToBoxAdapter(
+          child: _buildProductSection(
+            context,
+            title: 'Trending Now',
+            asyncValue: const AsyncValue<List<Product>>.loading(),
+            onRetry: () => ref.invalidate(homeRailsProvider),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: _buildProductSection(
+            context,
+            title: 'New Arrivals',
+            asyncValue: const AsyncValue<List<Product>>.loading(),
+            onRetry: () => ref.invalidate(homeRailsProvider),
+          ),
+        ),
+      ],
+      error: (e, st) => [
+        SliverToBoxAdapter(
+          child: _buildProductSection(
+            context,
+            title: 'Shop',
+            asyncValue: AsyncValue<List<Product>>.error(e, st),
+            onRetry: () => ref.invalidate(homeRailsProvider),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final trendingAsyncValue = ref.watch(trendingProductsProvider);
-    final newArrivalsAsyncValue = ref.watch(newArrivalsProvider);
+    final railsAsync = ref.watch(homeRailsProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E14),
+      backgroundColor: SophixColors.background,
       body: RefreshIndicator(
         onRefresh: () async {
-          // Refresh products
+          ref.invalidate(homeRailsProvider);
           ref.invalidate(trendingProductsProvider);
           ref.invalidate(newArrivalsProvider);
-          await Future.delayed(const Duration(seconds: 1));
+          ref.invalidate(productsProvider);
+          ref.invalidate(categoriesProvider);
+          await Future.delayed(const Duration(milliseconds: 600));
         },
-        color: const Color(0xFF00D1FF),
-        backgroundColor: const Color(0xFF161B22),
+        color: SophixColors.accent,
+        backgroundColor: SophixColors.surface,
+        displacement: 48,
+        edgeOffset: MediaQuery.paddingOf(context).top + kToolbarHeight,
         child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
           slivers: [
             _buildSliverAppBar(context),
             SliverToBoxAdapter(child: _buildHeroSection(context)),
             SliverToBoxAdapter(child: _buildCategorySection(context)),
-            SliverToBoxAdapter(
-              child: _buildProductSection(
-                context,
-                title: "Trending Now",
-                asyncValue: trendingAsyncValue,
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: _buildProductSection(
-                context,
-                title: "New Arrivals",
-                asyncValue: newArrivalsAsyncValue,
-              ),
-            ),
+            ..._homeShopRailSlivers(railsAsync),
             const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
           ],
         ),
@@ -92,7 +148,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
     final cartItemsCount = ref.watch(cartProvider).totalItems;
 
     return SliverAppBar(
-      backgroundColor: const Color(0xFF0A0E14),
+      backgroundColor: SophixColors.background,
       floating: true,
       centerTitle: true,
       title: Text(
@@ -129,26 +185,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
             ),
             if (cartItemsCount > 0)
               Positioned(
-                right: 8,
-                top: 8,
+                right: 6,
+                top: 6,
                 child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF00D1FF),
-                    shape: BoxShape.circle,
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                  decoration: BoxDecoration(
+                    color: SophixColors.accent,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  constraints: const BoxConstraints(
-                    minWidth: 16,
-                    minHeight: 16,
-                  ),
+                  alignment: Alignment.center,
                   child: Text(
-                    cartItemsCount.toString(),
+                    cartItemsCount > 99 ? '99+' : '$cartItemsCount',
                     style: GoogleFonts.inter(
                       color: Colors.black,
                       fontSize: 10,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w800,
                     ),
-                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
@@ -270,51 +323,114 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
     );
   }
 
-  Widget _buildCategorySection(BuildContext context) {
-    final categories = [
-      {'name': 'Sneakers', 'icon': Icons.directions_run},
-      {'name': 'Hoodies', 'icon': Icons.checkroom},
-      {'name': 'Pants', 'icon': Icons.accessibility},
-      {'name': 'Accessories', 'icon': Icons.watch},
-    ];
+  IconData _iconForCategoryName(String name) {
+    final n = name.toLowerCase();
+    if (n.contains('sneaker') || n.contains('shoe') || n.contains('foot')) {
+      return Icons.directions_run_rounded;
+    }
+    if (n.contains('hoodie') || n.contains('shirt') || n.contains('tee') || n.contains('apparel')) {
+      return Icons.checkroom_rounded;
+    }
+    if (n.contains('pant') || n.contains('cargo') || n.contains('jean')) {
+      return Icons.accessibility_new_rounded;
+    }
+    if (n.contains('accessor') || n.contains('watch') || n.contains('hat') || n.contains('bag')) {
+      return Icons.watch_rounded;
+    }
+    if (n.contains('tech')) {
+      return Icons.layers_rounded;
+    }
+    return Icons.category_rounded;
+  }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
-          child: Text(
-            'Shop by Category',
-            style: GoogleFonts.outfit(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+  Widget _buildCategorySection(BuildContext context) {
+    final categoriesAsync = ref.watch(categoriesProvider);
+
+    return categoriesAsync.when(
+      data: (cats) {
+        if (cats.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
+              child: Text(
+                'Shop by Category',
+                style: GoogleFonts.outfit(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 115,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: cats.length,
+                itemBuilder: (context, index) {
+                  final c = cats[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: _buildCategoryCard(
+                      context,
+                      c.name,
+                      _iconForCategoryName(c.name),
+                      index == 0,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
+            child: Text(
+              'Shop by Category',
+              style: GoogleFonts.outfit(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
           ),
-        ),
-        SizedBox(
-          height: 115,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: categories.length,
-            itemBuilder: (context, index) {
-              final category = categories[index];
-              return Padding(
+          SizedBox(
+            height: 115,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: 4,
+              itemBuilder: (_, __) => Padding(
                 padding: const EdgeInsets.only(right: 16),
-                child: _buildCategoryCard(context, category['name'] as String, category['icon'] as IconData, index == 0),
-              );
-            },
+                child: Container(
+                  width: 80,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF161B22),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
   Widget _buildCategoryCard(BuildContext context, String name, IconData icon, bool isSelected) {
     return GestureDetector(
       onTap: () {
-        // TODO: Filter by category
+        ref.read(browseCategoryFilterProvider.notifier).state = name;
+        ref.read(currentTabProvider.notifier).setTab(1);
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -352,7 +468,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
     );
   }
 
-  Widget _buildProductSection(BuildContext context, {required String title, required AsyncValue asyncValue}) {
+  Widget _buildProductSection(
+    BuildContext context, {
+    required String title,
+    required AsyncValue<List<Product>> asyncValue,
+    required VoidCallback onRetry,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -371,13 +492,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
               ),
               TextButton(
                 onPressed: () {
-                  // TODO: Navigate to full list
+                  ref.read(currentTabProvider.notifier).setTab(1);
                 },
                 child: Text(
-                  'View All',
+                  'View all',
                   style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: Colors.white54,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: SophixColors.accent,
                   ),
                 ),
               ),
@@ -387,39 +509,73 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
         SizedBox(
           height: 300,
           child: asyncValue.when(
-            data: (products) => ListView.builder(
+            data: (products) {
+              if (products.isEmpty) {
+                return Center(
+                  child: Text(
+                    'No products yet',
+                    style: GoogleFonts.inter(color: Colors.white38, fontSize: 14),
+                  ),
+                );
+              }
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: products.length,
+                itemBuilder: (context, index) {
+                  final product = products[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: _buildProductCard(context, product),
+                  );
+                },
+              );
+            },
+            loading: () => ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                final product = products[index];
-                return Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: _buildProductCard(context, product),
-                );
-              },
+              itemCount: 4,
+              itemBuilder: (_, __) => Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: _buildProductCardSkeleton(),
+              ),
             ),
-            loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF00D1FF))),
             error: (err, stack) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, color: Colors.red, size: 48),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Failed to load products',
-                    style: GoogleFonts.inter(color: Colors.white70),
-                  ),
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () => ref.invalidate(asyncValue is AsyncData ? trendingProductsProvider : newArrivalsProvider),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00D1FF),
-                      foregroundColor: Colors.black,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.cloud_off_outlined, color: Colors.white.withValues(alpha: 0.35), size: 44),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Couldn\'t load products',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.outfit(
+                        color: Colors.white70,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                    child: const Text('Retry'),
-                  ),
-                ],
+                    const SizedBox(height: 6),
+                    Text(
+                      'Check your connection and try again.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(color: Colors.white38, fontSize: 13),
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: onRetry,
+                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      label: const Text('Retry'),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: SophixColors.accent,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -428,7 +584,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
     );
   }
 
-  Widget _buildProductCard(BuildContext context, dynamic product) {
+  Widget _buildProductCardSkeleton() {
+    return Container(
+      width: 180,
+      decoration: BoxDecoration(
+        color: SophixColors.surface,
+        borderRadius: BorderRadius.circular(SophixRadii.md),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: SophixColors.surfaceVariant,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(SophixRadii.md)),
+              ),
+              child: Center(
+                child: Icon(Icons.image_outlined, color: Colors.white.withValues(alpha: 0.06), size: 40),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(height: 10, width: 48, decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(4))),
+                const SizedBox(height: 10),
+                Container(height: 14, width: 120, decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(4))),
+                const SizedBox(height: 10),
+                Container(height: 12, width: 72, decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(4))),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductCard(BuildContext context, Product product) {
     return GestureDetector(
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(
@@ -438,61 +634,63 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
       child: Container(
         width: 180,
         decoration: BoxDecoration(
-          color: const Color(0xFF161B22),
-          borderRadius: BorderRadius.circular(16),
+          color: SophixColors.surface,
+          borderRadius: BorderRadius.circular(SophixRadii.md),
           border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.25),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Product Image
             Expanded(
-              child: Container(
-                decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                  color: Color(0xFF1E2832),
-                ),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(SophixRadii.md)),
                 child: Stack(
+                  fit: StackFit.expand,
                   children: [
-                    const Center(
-                      child: Icon(
-                        Icons.inventory_2_outlined,
-                        color: Colors.white24,
-                        size: 60,
-                      ),
+                    SophixProductImage(
+                      imageUrl: product.imageUrl,
+                      borderRadius: BorderRadius.zero,
+                      memCacheWidth: 400,
                     ),
                     Positioned(
-                      top: 12,
-                      right: 12,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.6),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Icon(
-                          Icons.favorite_border,
-                          color: Colors.white,
-                          size: 16,
+                      top: 10,
+                      right: 10,
+                      child: Material(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        shape: const CircleBorder(),
+                        child: InkWell(
+                          customBorder: const CircleBorder(),
+                          onTap: () => HapticFeedback.selectionClick(),
+                          child: const Padding(
+                            padding: EdgeInsets.all(8),
+                            child: Icon(Icons.favorite_border, color: Colors.white, size: 18),
+                          ),
                         ),
                       ),
                     ),
                     if (product.isNew)
                       Positioned(
-                        top: 12,
-                        left: 12,
+                        top: 10,
+                        left: 10,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF00D1FF),
-                            borderRadius: BorderRadius.circular(12),
+                            color: SophixColors.accent,
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
                             'NEW',
                             style: GoogleFonts.inter(
                               color: Colors.black,
                               fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),
@@ -512,7 +710,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
                     style: GoogleFonts.inter(
                       fontSize: 10,
                       letterSpacing: 2,
-                      color: const Color(0xFF00D1FF),
+                      color: SophixColors.accent,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -587,8 +785,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF161B22),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: SophixColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SophixRadii.md)),
         title: Text(
           'Logout',
           style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),

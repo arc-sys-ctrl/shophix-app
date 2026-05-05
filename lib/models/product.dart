@@ -1,3 +1,5 @@
+import '../config/env_config.dart';
+
 class Product {
   final String id;
   final String name;
@@ -14,6 +16,13 @@ class Product {
   final bool isNew;
   final bool isTrending;
   final String vendor;
+  /// `active`, `draft`, `out_of_stock` from CRM — drafts are hidden on the client if present.
+  final String? status;
+  /// ISO or DB timestamp; used to bust image cache when CRM updates media.
+  final String? updatedAt;
+
+  bool get isStorefrontVisible =>
+      status == null || status == 'active' || status == 'out_of_stock';
 
   Product({
     required this.id,
@@ -31,17 +40,46 @@ class Product {
     this.isNew = false,
     this.isTrending = false,
     required this.vendor,
+    this.status,
+    this.updatedAt,
   });
 
+  /// Turns `/api/uploads/...` into a full URL for [CachedNetworkImage].
+  static String _resolveMediaUrl(String? path, {String? cacheBust}) {
+    if (path == null || path.isEmpty) return '';
+    if (path.startsWith('http')) return path;
+    final base = EnvConfig.baseUrl;
+    final uri = Uri.parse(base);
+    final origin = Uri(
+      scheme: uri.scheme,
+      host: uri.host,
+      port: uri.hasPort ? uri.port : null,
+    ).toString();
+    String url;
+    if (path.startsWith('/')) {
+      url = '$origin$path';
+    } else {
+      url = '$origin/$path';
+    }
+    if (cacheBust != null && cacheBust.isNotEmpty) {
+      final sep = url.contains('?') ? '&' : '?';
+      url = '$url${sep}v=${Uri.encodeComponent(cacheBust)}';
+    }
+    return url;
+  }
+
   factory Product.fromJson(Map<String, dynamic> json) {
+    final rawMain = json['image_url'] as String? ?? '';
+    final rawList = List<String>.from(json['image_urls'] ?? []);
+    final bust = json['updated_at']?.toString() ?? json['updatedAt']?.toString();
     return Product(
       id: json['id'] ?? '',
       name: json['name'] ?? '',
       brand: json['brand'] ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       originalPrice: (json['original_price'] as num?)?.toDouble(),
-      imageUrl: json['image_url'] ?? '',
-      imageUrls: List<String>.from(json['image_urls'] ?? []),
+      imageUrl: _resolveMediaUrl(rawMain, cacheBust: bust),
+      imageUrls: rawList.map((p) => _resolveMediaUrl(p, cacheBust: bust)).toList(),
       categoryName: json['category_name'] ?? '',
       sizes: List<String>.from(json['sizes'] ?? []),
       description: json['description'] ?? '',
@@ -50,6 +88,8 @@ class Product {
       isNew: json['is_new'] ?? false,
       isTrending: json['is_trending'] ?? false,
       vendor: json['vendor'] ?? '',
+      status: json['status']?.toString(),
+      updatedAt: bust,
     );
   }
 }

@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../models/cart_item.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
 
 class CheckoutScreen extends StatefulWidget {
-  final double amount;
-  const CheckoutScreen({super.key, required this.amount});
+  final List<CartItem> cartItems;
+  final double orderTotal;
+  final VoidCallback? onOrderComplete;
+
+  const CheckoutScreen({
+    super.key,
+    required this.cartItems,
+    required this.orderTotal,
+    this.onOrderComplete,
+  });
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -33,6 +43,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> with TickerProviderStat
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
     _animationController.forward();
+    _prefillFromSavedUser();
+  }
+
+  Future<void> _prefillFromSavedUser() async {
+    final u = await AuthService().getSavedUser();
+    if (!mounted || u == null) return;
+    setState(() {
+      if (_nameController.text.isEmpty) _nameController.text = u.fullName;
+      if (_emailController.text.isEmpty) _emailController.text = u.email;
+      if (_phoneController.text.isEmpty && u.phone != null && u.phone!.isNotEmpty) {
+        _phoneController.text = u.phone!;
+      }
+    });
   }
 
   @override
@@ -110,7 +133,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> with TickerProviderStat
                 style: GoogleFonts.inter(color: Colors.white54, fontSize: 14),
               ),
               Text(
-                '${widget.amount.toStringAsFixed(2)} KES',
+                '${widget.orderTotal.toStringAsFixed(2)} KES',
                 style: GoogleFonts.outfit(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -430,7 +453,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> with TickerProviderStat
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'PAY ${widget.amount.toStringAsFixed(2)} KES',
+                    'PAY ${widget.orderTotal.toStringAsFixed(2)} KES',
                     style: GoogleFonts.outfit(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
@@ -493,25 +516,66 @@ class _CheckoutScreenState extends State<CheckoutScreen> with TickerProviderStat
   }
 
   Future<void> _processMpesa() async {
-    final result = await _apiService.initiateMpesaStkPush(
-      _phoneController.text,
-      widget.amount,
+    final token = await AuthService().getToken();
+    if (token == null) {
+      throw Exception('Please sign in to place an order.');
+    }
+
+    final shipping = _addressController.text.trim();
+    final items = widget.cartItems
+        .map(
+          (e) => <String, dynamic>{
+            'productId': e.productId,
+            'price': e.price,
+            'quantity': e.quantity,
+            'size': e.selectedSize,
+          },
+        )
+        .toList();
+
+    final order = await _apiService.createCustomerOrder(
+      token: token,
+      items: items,
+      totalAmount: widget.orderTotal,
+      shippingAddress: shipping,
+      customerName: _nameController.text.trim(),
+      customerEmail: _emailController.text.trim(),
+      customerPhone: _phoneController.text.trim(),
+      paymentMethod: 'mpesa',
+      channel: 'app',
     );
 
-    if (result['success'] == true) {
+    final orderId = order['orderId']?.toString() ??
+        order['order_id']?.toString() ??
+        order['id']?.toString();
+    if (orderId == null || orderId.isEmpty) {
+      throw Exception('Order created but missing order id');
+    }
+
+    final result = await _apiService.initiateMpesaStkPush(
+      _phoneController.text,
+      widget.orderTotal.roundToDouble(),
+      orderId: orderId,
+    );
+
+    final stkOk = result['success'] == true ||
+        result['CheckoutRequestID'] != null ||
+        result['checkout_request_id'] != null;
+    if (stkOk) {
+      widget.onOrderComplete?.call();
       _showSuccessDialog(
         'STK Push Sent',
         'Please check your phone for the M-Pesa PIN prompt to complete the transaction.',
         Icons.phone_android,
       );
     } else {
-      throw Exception(result['error'] ?? 'M-Pesa transaction failed');
+      throw Exception(result['error']?.toString() ?? 'M-Pesa transaction failed');
     }
   }
 
   Future<void> _processStripe() async {
     // 1. Create Payment Intent on the backend
-    final clientSecret = await _apiService.createStripePaymentIntent(widget.amount, 'kes');
+    final clientSecret = await _apiService.createStripePaymentIntent(widget.orderTotal, 'kes');
 
     // 2. Initialize Payment Sheet
     await Stripe.instance.initPaymentSheet(

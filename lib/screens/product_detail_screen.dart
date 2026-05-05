@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/product.dart';
 import '../models/cart_item.dart';
 import '../providers/cart_provider.dart';
+import '../theme/app_theme.dart';
+import '../widgets/product_image.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   final Product product;
@@ -48,6 +50,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
   @override
   void dispose() {
     _animationController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -88,7 +91,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E14),
+      backgroundColor: SophixColors.background,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -133,7 +136,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
       elevation: 0,
       pinned: true,
       stretch: true,
-      backgroundColor: const Color(0xFF0A0E14),
+      backgroundColor: SophixColors.background,
       leadingWidth: 70,
       leading: Padding(
         padding: const EdgeInsets.only(left: 16),
@@ -198,21 +201,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
                 itemBuilder: (context, index) {
                   final images = [widget.product.imageUrl, ...widget.product.imageUrls];
                   final imageUrl = images[index];
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF161B22),
-                      image: imageUrl.isNotEmpty ? DecorationImage(
-                        image: NetworkImage(imageUrl),
-                        fit: BoxFit.cover,
-                      ) : null,
+                  return SizedBox.expand(
+                    child: SophixProductImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      memCacheWidth: 900,
                     ),
-                    child: imageUrl.isEmpty ? Center(
-                      child: Icon(
-                        Icons.inventory_2_outlined,
-                        color: Colors.white.withValues(alpha: 0.05),
-                        size: 100,
-                      ),
-                    ) : null,
                   );
                 },
               ),
@@ -223,10 +217,10 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
-                    const Color(0xFF0A0E14),
+                    SophixColors.background,
                     Colors.transparent,
                     Colors.transparent,
-                    const Color(0xFF0A0E14).withValues(alpha: 0.5),
+                    SophixColors.background.withValues(alpha: 0.5),
                   ],
                   stops: const [0.0, 0.3, 0.7, 1.0],
                 ),
@@ -247,7 +241,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
                       height: 6,
                       width: _currentImageIndex == index ? 24 : 6,
                       decoration: BoxDecoration(
-                        color: _currentImageIndex == index ? const Color(0xFF00D1FF) : Colors.white24,
+                        color: _currentImageIndex == index ? SophixColors.accent : Colors.white24,
                         borderRadius: BorderRadius.circular(3),
                       ),
                     ),

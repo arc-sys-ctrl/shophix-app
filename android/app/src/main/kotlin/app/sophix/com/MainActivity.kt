@@ -1,4 +1,4 @@
-package com.example.sophix_mobile
+package app.sophix.com
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,26 +1,44 @@
 {
   "project_info": {
-    "project_number": "111888953034",
-    "project_id": "sophix-162f6",
-    "storage_bucket": "sophix-162f6.firebasestorage.app"
+    "project_number": "562443885579",
+    "project_id": "sophix-36e1e",
+    "storage_bucket": "sophix-36e1e.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:111888953034:android:27ee0a94e726f1e4bd4e33",
+        "mobilesdk_app_id": "1:562443885579:android:369fc8e2938019109efb0e",
         "android_client_info": {
-          "package_name": "com.example.sophix_mobile"
+          "package_name": "app.sophix.com"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "562443885579-5q9bi6p8pe7ugkhsmbhpo702h9aklu1e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.sophix.com",
+            "certificate_hash": "e0edd4df6232e9b05743f78121e658a7e38d3e04"
+          }
+        },
+        {
+          "client_id": "562443885579-3t0m4b0u8i2daf4gm032o69orf4449hi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyCfxfRyCnAKk0Ye4YId22j-Gv_aZUrYijo"
+          "current_key": "AIzaSyDm2n-Q9MMl8uU2OLs3wrTsuVZ2e4AhwWc"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "562443885579-3t0m4b0u8i2daf4gm032o69orf4449hi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

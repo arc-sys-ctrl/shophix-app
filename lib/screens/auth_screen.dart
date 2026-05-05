@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../providers/auth_provider.dart';
+import '../services/phone_auth_service.dart';
 import 'main_layout.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -38,6 +39,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   bool _obscureConfirm = true;
   bool _agreedToTerms = false;
   bool _rememberMe = false;
+  final PhoneAuthService _phoneAuthService = PhoneAuthService();
 
   @override
   void initState() {
@@ -268,6 +270,8 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
               );
             },
           ),
+          const SizedBox(height: 12),
+          _buildPhoneAuthButton(),
           const SizedBox(height: 28),
 
           // OR divider
@@ -405,6 +409,35 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
         ),
         Expanded(child: Divider(color: Colors.white.withValues(alpha: 0.08))),
       ],
+    );
+  }
+
+  Widget _buildPhoneAuthButton() {
+    return GestureDetector(
+      onTap: _showPhoneVerificationSheet,
+      child: Container(
+        height: 56,
+        decoration: BoxDecoration(
+          color: const Color(0xFF161B22),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.phone_android_rounded, color: Color(0xFF00D1FF), size: 20),
+            const SizedBox(width: 10),
+            Text(
+              'Verify with Phone OTP',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -918,6 +951,189 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showPhoneVerificationSheet() {
+    final phoneCtrl = TextEditingController();
+    final otpCtrl = TextEditingController();
+    String? verificationId;
+    bool isSending = false;
+    bool isVerifying = false;
+    String? localError;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF111827),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      isScrollControlled: true,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            Future<void> sendCode() async {
+              setModalState(() {
+                isSending = true;
+                localError = null;
+              });
+              try {
+                await _phoneAuthService.sendOtp(
+                  phoneInput: phoneCtrl.text.trim(),
+                  onCodeSent: (id, _) {
+                    setModalState(() => verificationId = id);
+                  },
+                  onFailed: (message) {
+                    setModalState(() => localError = message);
+                  },
+                );
+              } catch (e) {
+                setModalState(() => localError = e.toString().replaceAll('Exception: ', ''));
+              } finally {
+                setModalState(() => isSending = false);
+              }
+            }
+
+            Future<void> verifyCode() async {
+              if (verificationId == null) {
+                setModalState(() => localError = 'Send OTP first.');
+                return;
+              }
+              setModalState(() {
+                isVerifying = true;
+                localError = null;
+              });
+              try {
+                await _phoneAuthService.verifyOtp(
+                  verificationId: verificationId!,
+                  smsCode: otpCtrl.text.trim(),
+                );
+                if (!mounted) return;
+                Navigator.pop(ctx);
+                _showComingSoonSnack('Phone verified successfully. You can continue to sign in.');
+              } catch (e) {
+                setModalState(() => localError = e.toString().replaceAll('Exception: ', ''));
+              } finally {
+                setModalState(() => isVerifying = false);
+              }
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 32,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Phone Verification',
+                    style: GoogleFonts.outfit(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Use a Kenyan number like 0712345678 or +254712345678.',
+                    style: GoogleFonts.inter(color: Colors.white38, fontSize: 13),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildBottomSheetField(
+                    controller: phoneCtrl,
+                    hint: '07XXXXXXXX',
+                    icon: Icons.phone_iphone_rounded,
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: isSending ? null : sendCode,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF00D1FF),
+                        foregroundColor: Colors.black,
+                      ),
+                      child: isSending
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                            )
+                          : const Text('Send OTP'),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildBottomSheetField(
+                    controller: otpCtrl,
+                    hint: 'Enter SMS code',
+                    icon: Icons.pin_outlined,
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: OutlinedButton(
+                      onPressed: isVerifying ? null : verifyCode,
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF00D1FF)),
+                        foregroundColor: const Color(0xFF00D1FF),
+                      ),
+                      child: isVerifying
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Verify OTP'),
+                    ),
+                  ),
+                  if (localError != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      localError!,
+                      style: GoogleFonts.inter(color: const Color(0xFFEF4444), fontSize: 12),
+                    ),
+                  ],
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildBottomSheetField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.white24),
+        prefixIcon: Icon(icon, color: Colors.white24, size: 20),
+        filled: true,
+        fillColor: Colors.white.withValues(alpha: 0.06),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFF00D1FF), width: 1.5),
         ),
       ),
     );

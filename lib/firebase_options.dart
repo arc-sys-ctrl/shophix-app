@@ -48,11 +48,11 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCfxfRyCnAKk0Ye4YId22j-Gv_aZUrYijo',
-    appId: '1:111888953034:android:27ee0a94e726f1e4bd4e33',
-    messagingSenderId: '111888953034',
-    projectId: 'sophix-162f6',
-    storageBucket: 'sophix-162f6.firebasestorage.app',
+    apiKey: 'AIzaSyDm2n-Q9MMl8uU2OLs3wrTsuVZ2e4AhwWc',
+    appId: '1:562443885579:android:369fc8e2938019109efb0e',
+    messagingSenderId: '562443885579',
+    projectId: 'sophix-36e1e',
+    storageBucket: 'sophix-36e1e.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
@@ -61,6 +61,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '111888953034',
     projectId: 'sophix-162f6',
     storageBucket: 'sophix-162f6.firebasestorage.app',
-    iosBundleId: 'com.example.sophixMobile',
+    iosBundleId: 'app.sophix.com',
   );
 }

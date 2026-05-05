@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/product.dart';
 import '../providers/product_provider.dart';
+import '../providers/category_provider.dart';
+import '../providers/catalog_filter_provider.dart';
 import 'product_detail_screen.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
@@ -37,20 +39,34 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
   }
 
+  IconData _iconForCategoryName(String name) {
+    final n = name.toLowerCase();
+    if (n.contains('sneaker') || n.contains('shoe')) return Icons.bolt_rounded;
+    if (n.contains('hoodie') || n.contains('apparel') || n.contains('shirt')) {
+      return Icons.checkroom_rounded;
+    }
+    if (n.contains('accessor') || n.contains('watch')) return Icons.watch_rounded;
+    if (n.contains('tech')) return Icons.layers_rounded;
+    return Icons.category_rounded;
+  }
+
   @override
   Widget build(BuildContext context) {
     final productsAsync = ref.watch(productsProvider);
+    final browseCat = ref.watch(browseCategoryFilterProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0A0E14),
       body: SafeArea(
         child: Column(
           children: [
-            _buildSearchBar(),
+            _buildSearchBar(browseCat),
             Expanded(
-              child: _searchQuery.isEmpty 
-                ? _buildSearchSuggestions() 
-                : _buildSearchResults(productsAsync),
+              child: browseCat != null && _searchQuery.isEmpty
+                  ? _buildCategoryBrowse(browseCat)
+                  : (_searchQuery.isEmpty
+                      ? _buildSearchSuggestions()
+                      : _buildSearchResults(productsAsync)),
             ),
           ],
         ),
@@ -58,40 +74,115 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(String? browseCat) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            height: 56,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-            ),
-            child: TextField(
-              controller: _searchController,
-              autofocus: true,
-              style: GoogleFonts.inter(color: Colors.white, fontSize: 16),
-              decoration: InputDecoration(
-                hintText: 'Search the future...',
-                hintStyle: GoogleFonts.inter(color: Colors.white24),
-                prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF00D1FF), size: 20),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 18),
-                suffixIcon: _searchQuery.isNotEmpty ? IconButton(
-                  icon: const Icon(Icons.close_rounded, color: Colors.white38, size: 18),
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() => _searchQuery = '');
-                  },
-                ) : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (browseCat != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      browseCat,
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      HapticFeedback.selectionClick();
+                      ref.read(browseCategoryFilterProvider.notifier).state = null;
+                    },
+                    child: Text(
+                      'CLEAR',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF00D1FF),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              onChanged: (value) => setState(() => _searchQuery = value),
-              onSubmitted: _onSearch,
+            ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                height: 56,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  autofocus: false,
+                  style: GoogleFonts.inter(color: Colors.white, fontSize: 16),
+                  decoration: InputDecoration(
+                    hintText: 'Search the future...',
+                    hintStyle: GoogleFonts.inter(color: Colors.white24),
+                    prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF00D1FF), size: 20),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 18),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.close_rounded, color: Colors.white38, size: 18),
+                            onPressed: () {
+                              _searchController.clear();
+                              ref.read(browseCategoryFilterProvider.notifier).state = null;
+                              setState(() => _searchQuery = '');
+                            },
+                          )
+                        : null,
+                  ),
+                  onChanged: (value) {
+                    if (value.trim().isNotEmpty) {
+                      ref.read(browseCategoryFilterProvider.notifier).state = null;
+                    }
+                    setState(() => _searchQuery = value);
+                  },
+                  onSubmitted: _onSearch,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryBrowse(String categoryName) {
+    final async = ref.watch(productsInCategoryProvider(categoryName));
+    return RefreshIndicator(
+      color: const Color(0xFF00D1FF),
+      backgroundColor: const Color(0xFF161B22),
+      onRefresh: () async {
+        ref.invalidate(productsInCategoryProvider(categoryName));
+        ref.invalidate(productsProvider);
+        ref.invalidate(categoriesProvider);
+        await Future.delayed(const Duration(milliseconds: 400));
+      },
+      child: async.when(
+        data: _buildProductListView,
+        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF00D1FF))),
+        error: (_, __) => Center(
+          child: TextButton(
+            onPressed: () => ref.invalidate(productsInCategoryProvider(categoryName)),
+            child: Text(
+              'RETRY',
+              style: GoogleFonts.inter(color: const Color(0xFF00D1FF), fontWeight: FontWeight.w800),
             ),
           ),
         ),
@@ -189,58 +280,102 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   Widget _buildCategoryGrid() {
-    final categories = [
-      {'name': 'Sneakers', 'icon': Icons.bolt_rounded, 'color': const Color(0xFF00D1FF)},
-      {'name': 'Apparel', 'icon': Icons.checkroom_rounded, 'color': const Color(0xFF7C3AED)},
-      {'name': 'Accessories', 'icon': Icons.watch_rounded, 'color': const Color(0xFF4CAF50)},
-      {'name': 'Tech Wear', 'icon': Icons.layers_rounded, 'color': const Color(0xFFFF9800)},
+    final categoriesAsync = ref.watch(categoriesProvider);
+    const colors = [
+      Color(0xFF00D1FF),
+      Color(0xFF7C3AED),
+      Color(0xFF4CAF50),
+      Color(0xFFFF9800),
+      Color(0xFFE91E63),
+      Color(0xFF00BCD4),
     ];
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 1.3,
-      ),
-      itemCount: categories.length,
-      itemBuilder: (context, index) {
-        final category = categories[index];
-        return GestureDetector(
-          onTap: () {
-            HapticFeedback.selectionClick();
-            _searchController.text = category['name'] as String;
-            setState(() => _searchQuery = category['name'] as String);
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFF161B22),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  category['icon'] as IconData,
-                  color: category['color'] as Color,
-                  size: 28,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  category['name'] as String,
-                  style: GoogleFonts.outfit(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
+    return categoriesAsync.when(
+      data: (cats) {
+        if (cats.isEmpty) {
+          return Text(
+            'Categories from your store will show here once added in the CRM.',
+            style: GoogleFonts.inter(color: Colors.white38, fontSize: 13, height: 1.4),
+          );
+        }
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.3,
           ),
+          itemCount: cats.length,
+          itemBuilder: (context, index) {
+            final c = cats[index];
+            final color = colors[index % colors.length];
+            return GestureDetector(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                ref.read(browseCategoryFilterProvider.notifier).state = c.name;
+                _searchController.clear();
+                setState(() => _searchQuery = '');
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF161B22),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      _iconForCategoryName(c.name),
+                      color: color,
+                      size: 28,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      c.name,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.outfit(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: CircularProgressIndicator(color: Color(0xFF00D1FF)),
+        ),
+      ),
+      error: (_, __) => Text(
+        'Could not load categories.',
+        style: GoogleFonts.inter(color: Colors.white38, fontSize: 13),
+      ),
+    );
+  }
+
+  Widget _buildProductListView(List<Product> products) {
+    if (products.isEmpty) {
+      return _buildEmptyState();
+    }
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+      padding: const EdgeInsets.all(20),
+      itemCount: products.length,
+      itemBuilder: (context, index) {
+        final product = products[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: _buildSearchResultCard(product),
         );
       },
     );
@@ -252,26 +387,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         final filteredProducts = products.where((product) {
           final query = _searchQuery.toLowerCase();
           return product.name.toLowerCase().contains(query) ||
-                 product.brand.toLowerCase().contains(query) ||
-                 product.categoryName.toLowerCase().contains(query);
+              product.brand.toLowerCase().contains(query) ||
+              product.categoryName.toLowerCase().contains(query);
         }).toList();
 
-        if (filteredProducts.isEmpty) {
-          return _buildEmptyState();
-        }
-
-        return ListView.builder(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.all(20),
-          itemCount: filteredProducts.length,
-          itemBuilder: (context, index) {
-            final product = filteredProducts[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: _buildSearchResultCard(product),
-            );
-          },
-        );
+        return _buildProductListView(filteredProducts);
       },
       loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF00D1FF))),
       error: (err, stack) => _buildErrorState(),
@@ -415,7 +535,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           const SizedBox(height: 16),
           Text('Something went wrong', style: GoogleFonts.inter(color: Colors.white70)),
           TextButton(
-            onPressed: () => ref.invalidate(productsProvider),
+            onPressed: () {
+              ref.invalidate(productsProvider);
+              ref.invalidate(categoriesProvider);
+            },
             child: Text('RETRY', style: GoogleFonts.inter(color: const Color(0xFF00D1FF), fontWeight: FontWeight.bold)),
           ),
         ],

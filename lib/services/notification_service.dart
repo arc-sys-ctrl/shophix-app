@@ -42,9 +42,11 @@ class NotificationService {
         requestBadgePermission: false,
         requestSoundPermission: false,
       );
+      const linuxSettings = LinuxInitializationSettings(defaultActionName: 'Open');
       const initSettings = InitializationSettings(
         android: androidSettings,
         iOS: darwinSettings,
+        linux: linuxSettings,
       );
 
       await _localNotifications.initialize(
@@ -63,8 +65,13 @@ class NotificationService {
       _initialized = true;
       debugPrint('[NotificationService] Local notifications initialized.');
 
-      // ── FCM setup ──
-      await _initFCM();
+      // FCM + token sync are mobile targets; Linux/Windows desktop embedders often
+      // lack full Firebase Messaging support and can crash or drop the connection.
+      if (Platform.isAndroid || Platform.isIOS) {
+        await _initFCM();
+      } else {
+        debugPrint('[NotificationService] FCM skipped on ${Platform.operatingSystem}.');
+      }
     } catch (e) {
       debugPrint('[NotificationService] Init failed (non-critical): $e');
     }
@@ -92,11 +99,10 @@ class NotificationService {
       // Foreground message listener
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         debugPrint('[NotificationService] Foreground message received: ${message.notification?.title}');
-        
-        final notification = message.notification;
-        final android = message.notification?.android;
 
-        if (notification != null && android != null) {
+        final notification = message.notification;
+        // Show on both Android and iOS when FCM includes a notification payload (Android-only check hid iOS).
+        if (notification != null) {
           showNotification(
             title: notification.title ?? '',
             body: notification.body ?? '',

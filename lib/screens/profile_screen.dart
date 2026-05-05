@@ -1,14 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../models/user.dart';
 import '../providers/auth_provider.dart';
+import '../providers/product_provider.dart';
+import '../providers/category_provider.dart';
+import '../services/api_service.dart';
+import '../services/auth_service.dart';
 import 'auth_screen.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  int? _orderCount;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOrderCount();
+  }
+
+  Future<void> _loadOrderCount() async {
+    final token = await AuthService().getToken();
+    if (token == null || !mounted) return;
+    try {
+      final list = await ApiService().fetchUserOrders(token);
+      if (mounted) setState(() => _orderCount = list.length);
+    } catch (_) {
+      if (mounted) setState(() => _orderCount = null);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
 
     if (authState.user == null) {
@@ -17,26 +46,40 @@ class ProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFF0A0E14),
-      body: CustomScrollView(
-        slivers: [
-          _buildSliverAppBar(context, authState.user!),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  _buildProfileStats(),
-                  const SizedBox(height: 32),
-                  _buildMenuSection(),
-                  const SizedBox(height: 32),
-                  _buildSupportSection(),
-                  const SizedBox(height: 32),
-                  _buildLogoutButton(context, ref),
-                ],
+      body: RefreshIndicator(
+        color: const Color(0xFF00D1FF),
+        onRefresh: () async {
+          await ref.read(authProvider.notifier).refreshProfile();
+          ref.invalidate(productsProvider);
+          ref.invalidate(homeRailsProvider);
+          ref.invalidate(trendingProductsProvider);
+          ref.invalidate(newArrivalsProvider);
+          ref.invalidate(categoriesProvider);
+          ref.invalidate(productsInCategoryProvider);
+          await _loadOrderCount();
+        },
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            _buildSliverAppBar(context, authState.user!),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    _buildProfileStats(),
+                    const SizedBox(height: 32),
+                    _buildMenuSection(),
+                    const SizedBox(height: 32),
+                    _buildSupportSection(),
+                    const SizedBox(height: 32),
+                    _buildLogoutButton(context),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -102,7 +145,7 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSliverAppBar(BuildContext context, dynamic user) {
+  Widget _buildSliverAppBar(BuildContext context, User user) {
     return SliverAppBar(
       backgroundColor: const Color(0xFF0A0E14),
       expandedHeight: 200,
@@ -161,6 +204,16 @@ class ProfileScreen extends ConsumerWidget {
                   fontSize: 14,
                 ),
               ),
+              if (user.phone != null && user.phone!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  user.phone!,
+                  style: GoogleFonts.inter(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: 13,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -169,6 +222,7 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   Widget _buildProfileStats() {
+    final ordersLabel = _orderCount == null ? '…' : '$_orderCount';
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -179,9 +233,9 @@ class ProfileScreen extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatItem('Orders', '12'),
-          _buildStatItem('Wishlist', '8'),
-          _buildStatItem('Reviews', '5'),
+          _buildStatItem('Orders', ordersLabel),
+          _buildStatItem('Wishlist', '—'),
+          _buildStatItem('Reviews', '—'),
         ],
       ),
     );
@@ -345,12 +399,12 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildLogoutButton(BuildContext context, WidgetRef ref) {
+  Widget _buildLogoutButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       height: 56,
       child: OutlinedButton(
-        onPressed: () => _showLogoutDialog(context, ref),
+        onPressed: () => _showLogoutDialog(context),
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: Colors.red),
           shape: RoundedRectangleBorder(
@@ -369,7 +423,7 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
+  void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

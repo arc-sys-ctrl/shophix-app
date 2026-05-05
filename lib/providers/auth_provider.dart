@@ -35,8 +35,40 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<void> _loadUser() async {
     state = state.copyWith(isLoading: true);
     final authService = ref.read(authServiceProvider);
-    final user = await authService.getSavedUser();
-    state = state.copyWith(user: user, isLoading: false);
+    final map = await authService.getSavedUserMap();
+    if (map == null) {
+      state = state.copyWith(user: null, isLoading: false);
+      return;
+    }
+    final token = await authService.getToken();
+    if (token != null) {
+      try {
+        final profile = await authService.fetchProfile(token);
+        final merged = {...map, ...profile};
+        await authService.saveUserMap(merged);
+        state = state.copyWith(user: User.fromJson(merged), isLoading: false);
+        return;
+      } catch (_) {
+        /* offline or expired — show cached user */
+      }
+    }
+    state = state.copyWith(user: User.fromJson(map), isLoading: false);
+  }
+
+  /// Reload profile from `GET /users/me` and persist (e.g. after CRM updates name/phone).
+  Future<void> refreshProfile() async {
+    final authService = ref.read(authServiceProvider);
+    final token = await authService.getToken();
+    final map = await authService.getSavedUserMap();
+    if (token == null || map == null) return;
+    try {
+      final profile = await authService.fetchProfile(token);
+      final merged = {...map, ...profile};
+      await authService.saveUserMap(merged);
+      state = state.copyWith(user: User.fromJson(merged));
+    } catch (_) {
+      /* offline / expired — leave current user */
+    }
   }
 
   Future<bool> login(String email, String password) async {
@@ -44,8 +76,18 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       final authService = ref.read(authServiceProvider);
       final result = await authService.login(email, password);
+      Map<String, dynamic> userMap = Map<String, dynamic>.from(result['user'] as Map);
+      if (userMap['role'] != 'admin') {
+        try {
+          final profile = await authService.fetchProfile(result['token'] as String);
+          userMap = {...userMap, ...profile};
+          await authService.saveUserMap(userMap);
+        } catch (_) {
+          /* profile optional */
+        }
+      }
       state = state.copyWith(
-        user: User.fromJson(result['user']),
+        user: User.fromJson(userMap),
         isLoading: false,
       );
       // Sync FCM token with backend after successful login

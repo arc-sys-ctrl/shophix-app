@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'theme/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
+
+const String _stripePublishableKey =
+    String.fromEnvironment('STRIPE_PUBLISHABLE_KEY', defaultValue: '');
 
 /// Top-level FCM background message handler.
 /// Must be a top-level function (not a class method).
@@ -30,8 +34,19 @@ void main() async {
     debugPrint('[Firebase] Init failed (GoogleService-Info.plist missing?): $e');
   }
 
-  // Initialize Stripe
-  Stripe.publishableKey = 'pk_test_placeholder_for_sophix_stripe';
+  // Initialize Stripe key from build-time environment.
+  if (_stripePublishableKey.trim().isEmpty) {
+    if (kReleaseMode) {
+      throw StateError(
+        'Missing STRIPE_PUBLISHABLE_KEY. Run with --dart-define=STRIPE_PUBLISHABLE_KEY=pk_live_...',
+      );
+    }
+    debugPrint(
+      '[Stripe] STRIPE_PUBLISHABLE_KEY is not set. Payments will not work until provided via --dart-define.',
+    );
+  } else {
+    Stripe.publishableKey = _stripePublishableKey.trim();
+  }
 
   // Initialize push notifications (Now fully activated via FirebaseMessaging)
   await NotificationService().initialize();
@@ -51,18 +66,7 @@ class SophixApp extends StatelessWidget {
     return MaterialApp(
       title: 'Sophix',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0A0E14),
-        primaryColor: const Color(0xFF00D1FF),
-        textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF00D1FF),
-          secondary: Color(0xFF1E2832),
-          surface: Color(0xFF0A0E14),
-        ),
-        useMaterial3: true,
-      ),
+      theme: buildSophixTheme(),
       // Splash screen is the real entry point — handles auth-aware routing
       home: const SplashScreen(),
     );

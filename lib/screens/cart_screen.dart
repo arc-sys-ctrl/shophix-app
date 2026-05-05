@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/cart_provider.dart';
+import '../providers/navigation_provider.dart';
+import '../theme/app_theme.dart';
+import '../widgets/product_image.dart';
 import '../models/cart_item.dart';
 import 'checkout_screen.dart';
 
@@ -13,14 +16,17 @@ class CartScreen extends ConsumerWidget {
     final cartState = ref.watch(cartProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E14),
+      backgroundColor: SophixColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0A0E14),
+        backgroundColor: SophixColors.background,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+                onPressed: () => Navigator.of(context).pop(),
+              )
+            : null,
+        automaticallyImplyLeading: Navigator.canPop(context),
         title: Text(
           'Shopping Cart',
           style: GoogleFonts.outfit(
@@ -43,11 +49,11 @@ class CartScreen extends ConsumerWidget {
             ),
         ],
       ),
-      body: cartState.isEmpty ? _buildEmptyCart(context) : _buildCartContent(context, ref, cartState),
+      body: cartState.isEmpty ? _buildEmptyCart(context, ref) : _buildCartContent(context, ref, cartState),
     );
   }
 
-  Widget _buildEmptyCart(BuildContext context) {
+  Widget _buildEmptyCart(BuildContext context, WidgetRef ref) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -75,21 +81,21 @@ class CartScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF00D1FF),
+          FilledButton(
+            onPressed: () => ref.read(currentTabProvider.notifier).setTab(0),
+            style: FilledButton.styleFrom(
+              backgroundColor: SophixColors.accent,
               foregroundColor: Colors.black,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(SophixRadii.sm),
               ),
             ),
             child: Text(
-              'Continue Shopping',
+              'Browse products',
               style: GoogleFonts.outfit(
                 fontSize: 16,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -113,7 +119,7 @@ class CartScreen extends ConsumerWidget {
             },
           ),
         ),
-        _buildOrderSummary(context, cartState),
+        _buildOrderSummary(context, ref, cartState),
       ],
     );
   }
@@ -148,28 +154,22 @@ class CartScreen extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF161B22),
-          borderRadius: BorderRadius.circular(16),
+          color: SophixColors.surface,
+          borderRadius: BorderRadius.circular(SophixRadii.md),
           border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
         ),
         child: Row(
           children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E2832),
-                borderRadius: BorderRadius.circular(12),
-                image: item.imageUrl.isNotEmpty ? DecorationImage(
-                  image: NetworkImage(item.imageUrl),
-                  fit: BoxFit.cover,
-                ) : null,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(SophixRadii.sm),
+              child: SizedBox(
+                width: 80,
+                height: 80,
+                child: SophixProductImage(
+                  imageUrl: item.imageUrl,
+                  memCacheWidth: 200,
+                ),
               ),
-              child: item.imageUrl.isEmpty ? const Icon(
-                Icons.inventory_2_outlined,
-                color: Colors.white10,
-                size: 32,
-              ) : null,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -290,12 +290,12 @@ class CartScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildOrderSummary(BuildContext context, CartState cartState) {
+  Widget _buildOrderSummary(BuildContext context, WidgetRef ref, CartState cartState) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF161B22),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        color: SophixColors.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(SophixRadii.lg)),
         border: Border(
           top: BorderSide(color: Colors.white.withValues(alpha: 0.06), width: 1),
         ),
@@ -314,13 +314,19 @@ class CartScreen extends ConsumerWidget {
             width: double.infinity,
             height: 56,
             child: ElevatedButton(
-              onPressed: cartState.isEmpty ? null : () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => CheckoutScreen(amount: cartState.total + (cartState.subtotal * 0.16)),
-                ),
-              ),
+              onPressed: cartState.isEmpty
+                  ? null
+                  : () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => CheckoutScreen(
+                            cartItems: cartState.items,
+                            orderTotal: cartState.total + (cartState.subtotal * 0.16),
+                            onOrderComplete: () => ref.read(cartProvider.notifier).clearCart(),
+                          ),
+                        ),
+                      ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00D1FF),
+                backgroundColor: SophixColors.accent,
                 foregroundColor: Colors.black,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),

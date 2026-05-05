@@ -2,6 +2,8 @@ import 'product.dart';
 
 class CartItem {
   final String id;
+  /// Product UUID (for checkout API).
+  final String productId;
   final String name;
   final String brand;
   final double price;
@@ -12,6 +14,7 @@ class CartItem {
 
   CartItem({
     required this.id,
+    required this.productId,
     required this.name,
     required this.brand,
     required this.price,
@@ -24,6 +27,7 @@ class CartItem {
   CartItem copyWith({int? quantity}) {
     return CartItem(
       id: id,
+      productId: productId,
       name: name,
       brand: brand,
       price: price,
@@ -37,6 +41,7 @@ class CartItem {
   factory CartItem.fromProduct(Product p, {String? size}) {
     return CartItem(
       id: '${p.id}_${size ?? 'default'}',
+      productId: p.id,
       name: p.name,
       brand: p.brand,
       price: p.price,
