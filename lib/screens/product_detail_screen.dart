@@ -466,6 +466,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
   }
 
   Widget _buildDescription() {
+    final hasDescription = widget.product.description.trim().isNotEmpty;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -480,10 +481,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> with 
         ),
         const SizedBox(height: 16),
         Text(
-          widget.product.description,
+          hasDescription
+              ? widget.product.description
+              : 'No product details yet. Update this product description in CRM to show richer details here.',
           style: GoogleFonts.inter(
             fontSize: 15,
-            color: Colors.white.withValues(alpha: 0.7),
+            color: Colors.white.withValues(alpha: hasDescription ? 0.7 : 0.45),
             height: 1.7,
           ),
         ),
