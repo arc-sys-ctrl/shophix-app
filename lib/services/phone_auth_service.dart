@@ -1,7 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class PhoneAuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  FirebaseAuth get _auth {
+    if (Firebase.apps.isEmpty) {
+      throw StateError(
+        'Firebase is not initialized. Check google-services.json / Firebase setup, then restart the app.',
+      );
+    }
+    return FirebaseAuth.instance;
+  }
 
   String normalizeKenyanPhone(String input) {
     final raw = input.replaceAll(RegExp(r'\s+|-'), '');

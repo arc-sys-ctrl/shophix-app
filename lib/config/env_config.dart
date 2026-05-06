@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 /// Environment-aware configuration for the Sophix mobile app.
 class EnvConfig {
+  static const String _cloudApiBase = 'https://sophix-backend-1.onrender.com/api';
   /// Toggle this to change between local development and production.
   static const bool isProduction = kReleaseMode;
 
@@ -13,20 +14,17 @@ class EnvConfig {
   /// The base URL for the Sophix backend API.
   /// Update the production URL once you have a live domain or static IP.
   static String get baseUrl {
-    if (isProduction) {
-      // TODO: Replace with your actual production domain
-      return 'https://api.sophix-luxury.com/api';
-    }
     final override = _apiBaseUrlOverride.trim();
     if (override.isNotEmpty) {
       var u = override.replaceAll(RegExp(r'/+$'), '');
       return u.endsWith('/api') ? u : '$u/api';
     }
-    // Local dev: Android emulator → host loopback; physical device → use dart-define above.
-    final String host = kIsWeb
-        ? 'localhost'
-        : (defaultTargetPlatform == TargetPlatform.android ? '10.0.2.2' : 'localhost');
-    return 'http://$host:5000/api';
+    if (isProduction) {
+      return _cloudApiBase;
+    }
+    // Default non-release builds to live backend so devices on other networks work out of the box.
+    // For local backend testing, pass --dart-define=API_BASE_URL=http://<host>:5000/api
+    return _cloudApiBase;
   }
 
   static String get authUrl => '$baseUrl/auth';
