@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
 import '../models/product.dart';
 import '../models/category.dart';
 
@@ -59,16 +60,27 @@ class ApiService {
       final response = await http.get(uri).timeout(_requestTimeout);
       if (response.statusCode == 200) {
         final data = decodeJsonListBody(response.body);
-        return data
+        final products = data
             .map((row) => Product.fromJson(row as Map<String, dynamic>))
             .where((p) => p.isStorefrontVisible)
             .toList();
+        if (kDebugMode) {
+          final first = products.isNotEmpty ? products.first : null;
+          debugPrint(
+            '[ApiService] fetchProducts ok count=${products.length} '
+            'firstName=${first?.name ?? '-'} firstImage=${first?.imageUrl ?? '-'}',
+          );
+        }
+        return products;
       } else {
         throw Exception(_apiErrorMessage(response));
       }
     } on TimeoutException {
       throw Exception('Request timed out while loading products.');
     } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[ApiService] fetchProducts error: $e');
+      }
       throw Exception('Error connecting to backend: $e');
     }
   }

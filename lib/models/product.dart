@@ -68,6 +68,19 @@ class Product {
     return url;
   }
 
+  static double _toDouble(dynamic v, {double fallback = 0.0}) {
+    if (v == null) return fallback;
+    if (v is num) return v.toDouble();
+    return double.tryParse(v.toString()) ?? fallback;
+  }
+
+  static int _toInt(dynamic v, {int fallback = 0}) {
+    if (v == null) return fallback;
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    return int.tryParse(v.toString()) ?? fallback;
+  }
+
   factory Product.fromJson(Map<String, dynamic> json) {
     final rawMain =
         (json['image_url'] as String?) ??
@@ -86,15 +99,15 @@ class Product {
       id: json['id'] ?? '',
       name: json['name'] ?? '',
       brand: json['brand'] ?? '',
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      originalPrice: (json['original_price'] as num?)?.toDouble(),
+      price: _toDouble(json['price']),
+      originalPrice: json['original_price'] == null ? null : _toDouble(json['original_price']),
       imageUrl: _resolveMediaUrl(mainCandidate, cacheBust: bust),
       imageUrls: rawList.map((p) => _resolveMediaUrl(p, cacheBust: bust)).toList(),
       categoryName: json['category_name'] ?? '',
       sizes: List<String>.from(json['sizes'] ?? []),
       description: json['description'] ?? '',
-      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
-      reviewsCount: json['reviews_count'] ?? 0,
+      rating: _toDouble(json['rating']),
+      reviewsCount: _toInt(json['reviews_count']),
       isNew: json['is_new'] ?? false,
       isTrending: json['is_trending'] ?? false,
       vendor: json['vendor'] ?? '',
