@@ -69,8 +69,18 @@ class Product {
   }
 
   factory Product.fromJson(Map<String, dynamic> json) {
-    final rawMain = json['image_url'] as String? ?? '';
-    final rawList = List<String>.from(json['image_urls'] ?? []);
+    final rawMain =
+        (json['image_url'] as String?) ??
+        (json['imageUrl'] as String?) ??
+        (json['thumbnail'] as String?) ??
+        '';
+    final dynamic rawImagesAny = json['image_urls'] ?? json['imageUrls'] ?? const [];
+    final List<String> rawList = rawImagesAny is List
+        ? rawImagesAny.map((e) => e?.toString() ?? '').where((e) => e.isNotEmpty).toList()
+        : const [];
+    final String mainCandidate = rawMain.isNotEmpty
+        ? rawMain
+        : (rawList.isNotEmpty ? rawList.first : '');
     final bust = json['updated_at']?.toString() ?? json['updatedAt']?.toString();
     return Product(
       id: json['id'] ?? '',
@@ -78,7 +88,7 @@ class Product {
       brand: json['brand'] ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       originalPrice: (json['original_price'] as num?)?.toDouble(),
-      imageUrl: _resolveMediaUrl(rawMain, cacheBust: bust),
+      imageUrl: _resolveMediaUrl(mainCandidate, cacheBust: bust),
       imageUrls: rawList.map((p) => _resolveMediaUrl(p, cacheBust: bust)).toList(),
       categoryName: json['category_name'] ?? '',
       sizes: List<String>.from(json['sizes'] ?? []),

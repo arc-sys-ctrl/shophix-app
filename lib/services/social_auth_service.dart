@@ -13,18 +13,23 @@ class SocialAuthService {
 
   static final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
+    serverClientId: EnvConfig.googleWebClientId,
   );
 
   // ─── Google ────────────────────────────────────────────
 
   Future<User> signInWithGoogle() async {
+    await _googleSignIn.signOut();
     final account = await _googleSignIn.signIn();
     if (account == null) throw Exception('Google sign-in was cancelled.');
 
     final auth = await account.authentication;
     final idToken = auth.idToken;
     if (idToken == null || idToken.trim().isEmpty) {
-      throw Exception('Google sign-in failed: missing ID token.');
+      throw Exception(
+        'Google sign-in failed: missing ID token. Set GOOGLE_WEB_CLIENT_ID '
+        'via --dart-define to your Firebase Web OAuth client ID and rebuild.',
+      );
     }
 
     final response = await http.post(

@@ -3,6 +3,10 @@ import 'package:flutter/foundation.dart';
 /// Environment-aware configuration for the Sophix mobile app.
 class EnvConfig {
   static const String _cloudApiBase = 'https://sophix-backend-1.onrender.com/api';
+  static const String _googleWebClientId = String.fromEnvironment(
+    'GOOGLE_WEB_CLIENT_ID',
+    defaultValue: '',
+  );
   /// Toggle this to change between local development and production.
   static const bool isProduction = kReleaseMode;
 
@@ -28,6 +32,10 @@ class EnvConfig {
   }
 
   static String get authUrl => '$baseUrl/auth';
+  static String? get googleWebClientId {
+    final value = _googleWebClientId.trim();
+    return value.isEmpty ? null : value;
+  }
   static String get productsUrl => '$baseUrl/products';
   static String get ordersUrl => '$baseUrl/orders';
   static String get devicesUrl => '$baseUrl/devices';
