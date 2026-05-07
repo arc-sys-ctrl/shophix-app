@@ -71,11 +71,11 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String email, String password, {bool rememberMe = true}) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final authService = ref.read(authServiceProvider);
-      final result = await authService.login(email, password);
+      final result = await authService.login(email, password, persistSession: rememberMe);
       Map<String, dynamic> userMap = Map<String, dynamic>.from(result['user'] as Map);
       if (userMap['role'] != 'admin') {
         try {

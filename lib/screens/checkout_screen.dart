@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/cart_item.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
@@ -23,7 +24,7 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> with TickerProviderStateMixin {
   final ApiService _apiService = ApiService();
-  String _paymentMethod = 'mpesa'; // 'mpesa' or 'card'
+  String _paymentMethod = 'mpesa'; // 'mpesa' | 'card' | 'paypal'
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -272,6 +273,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> with TickerProviderStat
           icon: Icons.credit_card,
           color: const Color(0xFF6772E5),
         ),
+        const SizedBox(height: 12),
+        _buildPaymentOption(
+          id: 'paypal',
+          title: 'PayPal',
+          subtitle: 'Checkout with PayPal',
+          icon: Icons.account_balance_wallet_outlined,
+          color: const Color(0xFF0070BA),
+        ),
         const SizedBox(height: 24),
         if (_paymentMethod == 'mpesa') _buildMpesaForm(),
       ],
@@ -497,8 +506,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> with TickerProviderStat
     try {
       if (_paymentMethod == 'mpesa') {
         await _processMpesa();
-      } else {
+      } else if (_paymentMethod == 'card') {
         await _processStripe();
+      } else {
+        await _processPaypal();
       }
     } catch (e) {
       if (mounted) {
@@ -604,6 +615,46 @@ class _CheckoutScreenState extends State<CheckoutScreen> with TickerProviderStat
       'Payment Successful',
       'Your card has been charged successfully. Thank you for shopping with Sophix!',
       Icons.credit_card,
+    );
+  }
+
+  Future<void> _processPaypal() async {
+    final created = await _apiService.createPaypalOrder(widget.orderTotal);
+    final approveUrl = created['approveUrl']?.toString();
+    final orderId = created['orderId']?.toString();
+    if (approveUrl == null || approveUrl.isEmpty || orderId == null || orderId.isEmpty) {
+      throw Exception('PayPal order creation failed');
+    }
+
+    final uri = Uri.parse(approveUrl);
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!launched) {
+      throw Exception('Could not open PayPal checkout');
+    }
+
+    if (!mounted) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF161B22),
+        title: Text('Complete PayPal', style: GoogleFonts.outfit(color: Colors.white)),
+        content: Text(
+          'After approving payment in PayPal, tap "I Have Paid" to capture the payment.',
+          style: GoogleFonts.inter(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('I Have Paid')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    await _apiService.capturePaypalOrder(orderId);
+    _showSuccessDialog(
+      'PayPal Payment Successful',
+      'Your PayPal payment has been captured successfully.',
+      Icons.account_balance_wallet_outlined,
     );
   }
 

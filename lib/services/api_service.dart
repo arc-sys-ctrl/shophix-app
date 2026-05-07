@@ -193,4 +193,36 @@ class ApiService {
       throw Exception(_apiErrorMessage(response));
     }
   }
+
+  Future<Map<String, dynamic>> createPaypalOrder(double amount, {String currency = 'USD'}) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/payments/paypal/create-order'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'amount': amount, 'currency': currency}),
+    ).timeout(_requestTimeout);
+    if (response.statusCode == 200) {
+      return json.decode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(_apiErrorMessage(response));
+  }
+
+  Future<Map<String, dynamic>> capturePaypalOrder(String orderId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/payments/paypal/capture-order'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'orderId': orderId}),
+    ).timeout(_requestTimeout);
+    if (response.statusCode == 200) {
+      return json.decode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(_apiErrorMessage(response));
+  }
+
+  Future<Map<String, dynamic>> fetchPublicSettings() async {
+    final response = await http.get(Uri.parse('$baseUrl/settings/public')).timeout(_requestTimeout);
+    if (response.statusCode == 200) {
+      return json.decode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(_apiErrorMessage(response));
+  }
 }

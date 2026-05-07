@@ -9,6 +9,7 @@ import '../providers/product_provider.dart';
 import '../providers/category_provider.dart';
 import '../providers/catalog_filter_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/product_image.dart';
 import 'auth_screen.dart';
@@ -110,6 +111,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
   @override
   Widget build(BuildContext context) {
     final railsAsync = ref.watch(homeRailsProvider);
+    final settingsAsync = ref.watch(settingsProvider);
 
     return Scaffold(
       backgroundColor: SophixColors.background,
@@ -132,7 +134,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
           ),
           slivers: [
             _buildSliverAppBar(context),
-            SliverToBoxAdapter(child: _buildHeroSection(context)),
+            SliverToBoxAdapter(child: _buildHeroSection(context, settingsAsync)),
             SliverToBoxAdapter(child: _buildCategorySection(context)),
             ..._homeShopRailSlivers(railsAsync),
             const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
@@ -212,7 +214,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
     );
   }
 
-  Widget _buildHeroSection(BuildContext context) {
+  Widget _buildHeroSection(BuildContext context, AsyncValue<Map<String, dynamic>> settingsAsync) {
+    final hero = settingsAsync.maybeWhen(
+      data: (s) => (s['hero'] as Map?)?.cast<String, dynamic>(),
+      orElse: () => null,
+    );
+    final heroEnabled = (hero?['enabled'] as bool?) ?? true;
+    if (!heroEnabled) return const SizedBox.shrink();
+    final badge = (hero?['badge'] as String?)?.trim();
+    final title = (hero?['title'] as String?)?.trim();
+    final ctaText = (hero?['ctaText'] as String?)?.trim();
     return FadeTransition(
       opacity: _heroFadeAnimation,
       child: SlideTransition(
@@ -264,7 +275,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
                         border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
                       ),
                       child: Text(
-                        'NEW ARRIVALS 2026',
+                        (badge == null || badge.isEmpty) ? 'NEW ARRIVALS 2026' : badge,
                         style: GoogleFonts.inter(
                           fontSize: 9,
                           fontWeight: FontWeight.w800,
@@ -275,7 +286,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Future of\nSophistication.',
+                      (title == null || title.isEmpty) ? 'Future of\nSophistication.' : title,
                       style: GoogleFonts.outfit(
                         fontSize: 28,
                         fontWeight: FontWeight.w900,
@@ -299,7 +310,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'EXPLORE',
+                              (ctaText == null || ctaText.isEmpty) ? 'EXPLORE' : ctaText,
                               style: GoogleFonts.outfit(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w800,

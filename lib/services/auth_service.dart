@@ -12,7 +12,7 @@ class AuthService {
   static final String baseUrl = EnvConfig.authUrl;
   final _storage = const FlutterSecureStorage();
 
-  Future<Map<String, dynamic>> login(String email, String password) async {
+  Future<Map<String, dynamic>> login(String email, String password, {bool persistSession = true}) async {
     late final http.Response response;
     try {
       response = await http
@@ -28,8 +28,13 @@ class AuthService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      await _storage.write(key: 'token', value: data['token']);
-      await _storage.write(key: 'user', value: jsonEncode(data['user']));
+      if (persistSession) {
+        await _storage.write(key: 'token', value: data['token']);
+        await _storage.write(key: 'user', value: jsonEncode(data['user']));
+      } else {
+        await _storage.delete(key: 'token');
+        await _storage.delete(key: 'user');
+      }
       return data;
     } else {
       final error = jsonDecode(response.body);

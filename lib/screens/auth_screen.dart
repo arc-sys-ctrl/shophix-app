@@ -1144,6 +1144,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     final success = await ref.read(authProvider.notifier).login(
           _loginEmailController.text.trim(),
           _loginPasswordController.text,
+          rememberMe: _rememberMe,
         );
     if (success && mounted) {
       Navigator.of(context).pushAndRemoveUntil(
