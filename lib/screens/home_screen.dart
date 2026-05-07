@@ -12,6 +12,7 @@ import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/product_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'auth_screen.dart';
 import 'product_detail_screen.dart';
 
@@ -223,7 +224,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
     if (!heroEnabled) return const SizedBox.shrink();
     final badge = (hero?['badge'] as String?)?.trim();
     final title = (hero?['title'] as String?)?.trim();
+    final message = (hero?['message'] as String?)?.trim();
     final ctaText = (hero?['ctaText'] as String?)?.trim();
+    final videoUrl = (hero?['videoUrl'] as String?)?.trim();
+    final showVideo = (hero?['showVideo'] as bool?) ?? false;
     return FadeTransition(
       opacity: _heroFadeAnimation,
       child: SlideTransition(
@@ -294,35 +298,84 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
                         height: 1.1,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    GestureDetector(
-                      onTap: () {
-                        HapticFeedback.mediumImpact();
-                        ref.read(currentTabProvider.notifier).setTab(1); // Discover Tab
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              (ctaText == null || ctaText.isEmpty) ? 'EXPLORE' : ctaText,
-                              style: GoogleFonts.outfit(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.black,
-                                letterSpacing: 1,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.arrow_forward_rounded, color: Colors.black, size: 16),
-                          ],
+                    if (message != null && message.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        message,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
+                    ],
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            HapticFeedback.mediumImpact();
+                            ref.read(currentTabProvider.notifier).setTab(1); // Discover Tab
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  (ctaText == null || ctaText.isEmpty) ? 'EXPLORE' : ctaText,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.black,
+                                    letterSpacing: 1,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const Icon(Icons.arrow_forward_rounded, color: Colors.black, size: 16),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (showVideo && videoUrl != null && videoUrl.isNotEmpty) ...[
+                          const SizedBox(width: 12),
+                          GestureDetector(
+                            onTap: () async {
+                              final uri = Uri.tryParse(videoUrl);
+                              if (uri == null) return;
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.25),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 18),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'WATCH',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
