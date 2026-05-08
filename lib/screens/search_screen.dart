@@ -19,7 +19,7 @@ class SearchScreen extends ConsumerStatefulWidget {
 class _SearchScreenState extends ConsumerState<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  List<String> _recentSearches = ['Sneakers', 'Hoodie', 'Tech Wear'];
+  List<String> _recentSearches = [];
 
   @override
   void dispose() {
@@ -305,7 +305,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             crossAxisCount: 2,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: 1.3,
+            childAspectRatio: 1.8,
           ),
           itemCount: cats.length,
           itemBuilder: (context, index) {

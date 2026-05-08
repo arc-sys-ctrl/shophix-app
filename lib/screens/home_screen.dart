@@ -168,12 +168,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
           icon: const Icon(Icons.search, color: Colors.white70),
           onPressed: () => _showSearch(context),
         ),
-        if (authState.user != null)
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white70),
-            onPressed: () => _showLogoutDialog(context),
-          )
-        else
+        if (authState.user == null)
           IconButton(
             icon: const Icon(Icons.person_outline, color: Colors.white),
             onPressed: () => Navigator.of(context).push(
